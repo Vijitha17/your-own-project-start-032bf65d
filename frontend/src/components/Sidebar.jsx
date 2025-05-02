@@ -6,17 +6,29 @@ import { cn } from "@/lib/utils";
 const Sidebar = ({ isOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [role, setRole] = useState("Management Admin");
+  const [role, setRole] = useState("");
+  const [menuItems, setMenuItems] = useState([]);
   
   useEffect(() => {
+    // Get user role from localStorage
     const userRole = localStorage.getItem("userRole");
     if (userRole) {
       setRole(userRole);
       console.log('Current role:', userRole);
+      
+      // Get menu items based on role
+      // Directly use the role as stored in localStorage
+      const items = menuByRole[userRole] || [];
+      setMenuItems(items);
+      
+      if (items.length === 0) {
+        console.warn(`No menu items found for role: ${userRole}`);
+        console.log('Available roles:', Object.keys(menuByRole));
+      }
+    } else {
+      console.warn('No user role found in localStorage');
     }
   }, []);
-  
-  const menuItems = menuByRole[role.toLowerCase().replace(' ', '_')] || [];
   
   const isActive = (path) => {
     return location.pathname === path;
@@ -72,7 +84,11 @@ const Sidebar = ({ isOpen }) => {
       
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="px-2 space-y-1">
-          {menuItems.map(renderMenuItem)}
+          {menuItems.length > 0 ? (
+            menuItems.map(renderMenuItem)
+          ) : (
+            <div className="text-center text-gray-500 py-4">No menu items available</div>
+          )}
         </nav>
       </div>
     </aside>

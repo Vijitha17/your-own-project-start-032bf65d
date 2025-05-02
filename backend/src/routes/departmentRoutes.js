@@ -2,30 +2,23 @@ const express = require('express');
 const router = express.Router();
 const {
   getAllDepartments,
+  getDepartmentById,
   getDepartmentsByCollege,
   createDepartment,
   updateDepartment,
-  deleteDepartment,
+  deleteDepartment
 } = require('../controllers/departmentController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
-// Apply auth middleware to all routes
-router.use(authMiddleware);
+// Route to get departments by college - available to all authenticated users
+// This needs to be defined before any middleware that applies to all routes
+router.get('/college/:college_id', authMiddleware(), getDepartmentsByCollege);
 
-// Department routes
-router.get('/', getAllDepartments);
-router.get('/:college_id', getDepartmentsByCollege);
-router.post('/', createDepartment);
-router.put('/:department_id', updateDepartment);
-router.delete('/:department_id', deleteDepartment);
-
-// Error handling middleware
-router.use((err, req, res, next) => {
-    console.error('Department route error:', err);
-    res.status(500).json({ 
-        message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-});
+// Apply restricted authentication middleware to admin/management routes
+router.get('/', authMiddleware(['Management_Admin', 'Principal']), getAllDepartments);
+router.get('/:department_id', authMiddleware(['Management_Admin', 'Principal']), getDepartmentById);
+router.post('/', authMiddleware(['Management_Admin', 'Principal']), createDepartment);
+router.put('/:department_id', authMiddleware(['Management_Admin', 'Principal']), updateDepartment);
+router.delete('/:department_id', authMiddleware(['Management_Admin', 'Principal']), deleteDepartment);
 
 module.exports = router;

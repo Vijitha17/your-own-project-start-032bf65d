@@ -19,111 +19,116 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getCurrentUser, logout } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Navbar = ({ toggleSidebar, sidebarOpen }) => {
   const isMobile = useIsMobile();
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
   
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        setLoading(true);
         const userData = await getCurrentUser();
         setUser(userData);
       } catch (error) {
         console.error('Error fetching user:', error);
+        if (error.response?.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem('token');
+          navigate('/login');
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to fetch user data. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } finally {
+        setLoading(false);
       }
     };
     
     fetchUser();
-  }, []);
+  }, [navigate, toast]);
   
   const handleLogout = async () => {
     try {
       await logout();
+      localStorage.removeItem('token');
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account.",
       });
+      navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
       toast({
-        title: "Logout failed",
-        description: "There was an error logging out. Please try again.",
+        title: "Error",
+        description: "Failed to logout. Please try again.",
         variant: "destructive",
       });
     }
   };
-  
+
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-sm px-4 h-16">
-      <div className="flex items-center">
-        <Button 
-          variant="ghost" 
-          size="icon" 
+    <nav className="border-b">
+      <div className="flex h-16 items-center px-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
           onClick={toggleSidebar}
-          className="mr-2"
         >
-          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </Button>
-        <Link to="/dashboard" className="flex items-center">
-          <span className="text-xl font-bold text-college-800">CollegeIMS</span>
-        </Link>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="relative">
-              <Bell size={18} />
-              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+        
+        <div className="ml-auto flex items-center space-x-4">
+          <Button variant="ghost" size="icon">
+            <Bell className="h-5 w-5" />
+          </Button>
+          
+          {loading ? (
+            <Skeleton className="h-8 w-8 rounded-full" />
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user.first_name} {user.last_name}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" asChild>
+              <Link to="/login">Login</Link>
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-72">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <div className="max-h-96 overflow-auto">
-              <div className="py-2 px-3 hover:bg-slate-100 cursor-pointer">
-                <p className="text-sm font-medium">New request from Computer Science</p>
-                <p className="text-xs text-muted-foreground">2 minutes ago</p>
-              </div>
-              <div className="py-2 px-3 hover:bg-slate-100 cursor-pointer">
-                <p className="text-sm font-medium">Purchase order approved</p>
-                <p className="text-xs text-muted-foreground">1 hour ago</p>
-              </div>
-              <div className="py-2 px-3 hover:bg-slate-100 cursor-pointer">
-                <p className="text-sm font-medium">Stock allocation completed</p>
-                <p className="text-xs text-muted-foreground">3 hours ago</p>
-              </div>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-college-600 flex items-center justify-center text-white">
-                <User size={16} />
-              </div>
-              {!isMobile && <span className="font-medium">{user ? `${user.first_name} ${user.last_name}` : 'Loading...'}</span>}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/profile')}>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Logout</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          )}
+        </div>
       </div>
-    </header>
+    </nav>
   );
 };
 

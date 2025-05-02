@@ -1,11 +1,10 @@
-const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/database');
 
 const createAdmin = async () => {
   try {
     // First check if user already exists
-    const [existingUser] = await pool.query('SELECT * FROM users WHERE email = ?', ['e21cs056@shanmugha.edu.in']);
+    const [existingUser] = await pool.query('SELECT * FROM users WHERE email = ?', ['admin@shanmugha.edu.in']);
     
     if (existingUser.length > 0) {
       console.log('Admin user already exists!');
@@ -17,10 +16,11 @@ const createAdmin = async () => {
     
     await pool.query(
       `INSERT INTO users 
-      (email, password, role_name, first_name, last_name) 
-      VALUES (?, ?, ?, ?, ?)`,
+      (user_id, email, password, role, first_name, last_name) 
+      VALUES (?, ?, ?, ?, ?, ?)`,
       [
-        'e21cs056@shanmugha.edu.in',
+        'F21MA001',
+        'admin@shanmugha.edu.in',
         hashedPassword,
         'Management_Admin',
         'Admin',
@@ -37,4 +37,4 @@ const createAdmin = async () => {
   }
 };
 
-createAdmin(); 
+createAdmin();

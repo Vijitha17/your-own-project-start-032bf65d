@@ -22,7 +22,7 @@ const UserList = ({ users, loading, onUpdate, onDelete }) => {
     );
   }
 
-  if (users.length === 0) {
+  if (!users || users.length === 0) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">No users found</p>
@@ -45,25 +45,25 @@ const UserList = ({ users, loading, onUpdate, onDelete }) => {
         </TableHeader>
         <TableBody>
           {users.map((user) => (
-            <TableRow key={user.id || user.user_id}>
-              <TableCell>{`${user.first_name} ${user.last_name}`}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>{user.role || user.role_name}</TableCell>
-              <TableCell>{user.college_name || "N/A"}</TableCell>
-              <TableCell>{user.department_name || "N/A"}</TableCell>
+            <TableRow key={user.user_id}>
+              <TableCell>{`${user.first_name || ''} ${user.last_name || ''}`}</TableCell>
+              <TableCell>{user.email || 'N/A'}</TableCell>
+              <TableCell>{user.role || user.role_name || 'N/A'}</TableCell>
+              <TableCell>{user.college_name || 'N/A'}</TableCell>
+              <TableCell>{user.department_name || 'N/A'}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => onUpdate(user.id || user.user_id, user)}
+                    onClick={() => onUpdate(user.user_id, user)}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => onDelete(user.id || user.user_id)}
+                    onClick={() => onDelete(user.user_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

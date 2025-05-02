@@ -1,83 +1,146 @@
 const College = require('../models/collegeModel');
+const { ROLES } = require('../middleware/authMiddleware');
 
-// Create new college
 const createCollege = async (req, res) => {
     try {
-        const { college_name } = req.body;
+        const { college_id, college_name } = req.body;
 
-        // Check if college already exists
-        const existingCollege = await College.getAll();
-        const collegeExists = existingCollege.some(college => 
-            college.college_name.toLowerCase() === college_name.toLowerCase()
-        );
-
-        if (collegeExists) {
-            return res.status(400).json({ message: 'College already exists' });
+        // Validate input
+        if (!college_id || !college_name) {
+            return res.status(400).json({
+                success: false,
+                message: 'College ID and name are required'
+            });
         }
 
-        const collegeId = await College.create({ college_name });
-        res.status(201).json({ message: 'College created successfully', collegeId });
+        // Check if college already exists
+        const exists = await College.exists(college_id);
+        if (exists) {
+            return res.status(400).json({
+                success: false,
+                message: 'College with this ID already exists'
+            });
+        }
+
+        // Create college
+        await College.create({ college_id, college_name });
+
+        res.status(201).json({
+            success: true,
+            message: 'College created successfully',
+            college_id
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Create college error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create college',
+            error: error.message
+        });
     }
 };
 
-// Get all colleges
 const getAllColleges = async (req, res) => {
     try {
         const colleges = await College.getAll();
-        res.json(colleges);
+        res.json({
+            success: true,
+            data: colleges
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Get colleges error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch colleges',
+            error: error.message
+        });
     }
 };
 
-// Get college by ID
 const getCollegeById = async (req, res) => {
     try {
         const { college_id } = req.params;
         const college = await College.getById(college_id);
         
         if (!college) {
-            return res.status(404).json({ message: 'College not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'College not found'
+            });
         }
 
-        res.json(college);
+        res.json({
+            success: true,
+            data: college
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Get college by ID error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch college',
+            error: error.message
+        });
     }
 };
 
-// Update college
 const updateCollege = async (req, res) => {
     try {
         const { college_id } = req.params;
         const { college_name } = req.body;
 
-        const updated = await College.update(college_id, { college_name });
-        if (!updated) {
-            return res.status(404).json({ message: 'College not found' });
+        // Validate input
+        if (!college_name) {
+            return res.status(400).json({
+                success: false,
+                message: 'College name is required'
+            });
         }
 
-        res.json({ message: 'College updated successfully' });
+        const updated = await College.update(college_id, { college_name });
+        if (!updated) {
+            return res.status(404).json({
+                success: false,
+                message: 'College not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'College updated successfully'
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Update college error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update college',
+            error: error.message
+        });
     }
 };
 
-// Delete college
 const deleteCollege = async (req, res) => {
     try {
         const { college_id } = req.params;
         const deleted = await College.delete(college_id);
         
         if (!deleted) {
-            return res.status(404).json({ message: 'College not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'College not found'
+            });
         }
 
-        res.json({ message: 'College deleted successfully' });
+        res.json({
+            success: true,
+            message: 'College deleted successfully'
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Delete college error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete college',
+            error: error.message
+        });
     }
 };
 
@@ -87,4 +150,4 @@ module.exports = {
     getCollegeById,
     updateCollege,
     deleteCollege
-}; 
+};

@@ -1,31 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    createCollege, 
-    getAllColleges, 
-    getCollegeById, 
-    updateCollege, 
-    deleteCollege 
-} = require('../controllers/collegeController');
-const { authMiddleware } = require('../middleware/authMiddleware');
+const collegeController = require('../controllers/collegeController');
+const { isManagementAdmin } = require('../middleware/authMiddleware');
 
-// All routes require authentication
-router.use(authMiddleware);
+// Apply authentication middleware to all college routes
+router.use(isManagementAdmin);
 
-// College routes
-router.post('/', createCollege);
-router.get('/', getAllColleges);
-router.get('/:college_id', getCollegeById);
-router.put('/:college_id', updateCollege);
-router.delete('/:college_id', deleteCollege);
+// College CRUD Routes
+router.post('/', collegeController.createCollege);
+router.get('/', collegeController.getAllColleges);
+router.get('/:college_id', collegeController.getCollegeById);
+router.put('/:college_id', collegeController.updateCollege);
+router.delete('/:college_id', collegeController.deleteCollege);
 
-// Error handling middleware for college routes
-router.use((err, req, res, next) => {
-    console.error('College route error:', err);
-    res.status(500).json({ 
-        message: 'Error processing college request',
-        error: err.message 
-    });
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.json({ status: 'College routes are working' });
 });
 
-module.exports = router; 
+// Error handling middleware
+router.use((err, req, res, next) => {
+  console.error('College route error:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: err.message
+  });
+});
+
+module.exports = router;

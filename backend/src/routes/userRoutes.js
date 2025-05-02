@@ -1,41 +1,67 @@
 const express = require('express');
 const router = express.Router();
 const { 
-    login, 
-    createUser, 
-    updateUser, 
-    getAllUsers, 
-    getUserById, 
-    getUsersByCollege, 
-    getUsersByDepartment,
-    getAllColleges,
-    getDepartmentsByCollege,
-    logout,
-    getProfile
+  login, 
+  createUser, 
+  updateUser, 
+  getAllUsers, 
+  getUserById, 
+  getUsersByCollege, 
+  getUsersByDepartment,
+  getAllColleges,
+  getDepartmentsByCollege,
+  logout,
+  getProfile
 } = require('../controllers/userController');
-const { isManagementAdmin, authMiddleware } = require('../middleware/authMiddleware');
+const { authMiddleware, ROLES } = require('../middleware/authMiddleware');
 
 // Public routes
 router.post('/login', login);
 router.post('/logout', logout);
 
-// Protected routes
+// Protected routes (require authentication but no specific role)
 router.get('/me', authMiddleware(), (req, res) => {
-    res.json(req.user);
+  res.json({ 
+    success: true,
+    user: req.user 
+  });
 });
 
 router.get('/profile', authMiddleware(), getProfile);
 
-// Dropdown data routes
-router.get('/colleges', getAllColleges);
-router.get('/colleges/:college_name/departments', getDepartmentsByCollege);
+// College/department dropdown data (available to all authenticated users)
+router.get('/colleges', authMiddleware(), getAllColleges);
+router.get('/colleges/:college_id/departments', authMiddleware(), getDepartmentsByCollege);
 
-// Management Admin only routes
-router.post('/users', isManagementAdmin, createUser);
-router.put('/users/:user_id', isManagementAdmin, updateUser);
-router.get('/users', isManagementAdmin, getAllUsers);
-router.get('/users/:user_id', isManagementAdmin, getUserById);
-router.get('/college/:college_name/users', isManagementAdmin, getUsersByCollege);
-router.get('/college/:college_name/department/:department_name/users', isManagementAdmin, getUsersByDepartment);
+// User Management Routes
+router.post('/users', 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN]), 
+  createUser
+);
 
-module.exports = router; 
+router.put('/users/:user_id', 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN]), 
+  updateUser
+);
+
+router.get('/users', 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.PRINCIPAL]), 
+  getAllUsers
+);
+
+router.get('/users/:user_id', 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.PRINCIPAL]), 
+  getUserById
+);
+
+router.get('/college/:college_id/users', 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.PRINCIPAL, ROLES.HOD]), 
+  getUsersByCollege
+);
+
+router.get('/college/:college_id/department/:department_id/users', 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.HOD, ROLES.DEPARTMENT_INCHARGE]), 
+  getUsersByDepartment
+);
+
+module.exports = router;

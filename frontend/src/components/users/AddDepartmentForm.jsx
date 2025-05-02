@@ -19,51 +19,77 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
+import { getColleges, createDepartment } from "@/lib/api";
 
 const AddDepartmentForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [colleges, setColleges] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    departmentId: "",
-    college: "",
-    name: ""
+    college_id: "",
+    department_name: ""
   });
   
-  const colleges = [
-    { id: "1", name: "Engineering College" },
-    { id: "2", name: "Science College" },
-    { id: "3", name: "Arts College" },
-    { id: "4", name: "Commerce College" }
-  ];
-  
-  // Generate a department ID when component mounts
   useEffect(() => {
-    const generateDepartmentId = () => {
-      const randomId = "DEPT-" + Math.floor(10000 + Math.random() * 90000);
-      setFormData(prev => ({ ...prev, departmentId: randomId }));
+    const fetchColleges = async () => {
+      try {
+        setLoading(true);
+        const collegesData = await getColleges();
+        setColleges(collegesData);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to fetch colleges",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
     };
     
-    generateDepartmentId();
-  }, []);
+    fetchColleges();
+  }, [toast]);
   
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleSelectChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleSelectChange = (value) => {
+    setFormData(prev => ({ ...prev, college_id: value }));
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting department data:", formData);
-    toast({
-      title: "Department added successfully",
-      description: `${formData.name} has been added to the system.`
-    });
-    navigate("/users/departments");
+    
+    if (!formData.college_id || !formData.department_name) {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await createDepartment(formData);
+      toast({
+        title: "Success",
+        description: `${formData.department_name} has been added to the system.`
+      });
+      navigate("/users?tab=departments");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create department",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   const toggleSidebar = () => {
@@ -79,7 +105,7 @@ const AddDepartmentForm = () => {
         
         <main className={`flex-1 p-6 md:p-8 transition-all duration-300 ${sidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
           <div className="flex items-center mb-6">
-            <Button variant="ghost" onClick={() => navigate("/users/departments")} className="mr-4">
+            <Button variant="ghost" onClick={() => navigate("/users?tab=departments")} className="mr-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Departments
             </Button>
@@ -92,61 +118,54 @@ const AddDepartmentForm = () => {
                 <CardTitle>Department Information</CardTitle>
               </CardHeader>
               
-              <CardContent className="space-y-4">
-                {/* Department ID Field (Auto-generated) */}
+              <CardContent className="space-y-4">                
                 <div className="space-y-2">
-                  <label htmlFor="departmentId" className="text-sm font-medium">Department ID (Auto-generated)</label>
-                  <input
-                    id="departmentId"
-                    type="text"
-                    name="departmentId"
-                    className="w-full px-3 py-2 border rounded-md bg-gray-100"
-                    value={formData.departmentId}
-                    readOnly
-                  />
-                </div>
-                
-                {/* College Selection Dropdown */}
-                <div className="space-y-2">
-                  <label htmlFor="college" className="text-sm font-medium">College</label>
+                  <label htmlFor="college_id" className="text-sm font-medium">College *</label>
                   <Select 
-                    value={formData.college} 
-                    onValueChange={(value) => handleSelectChange("college", value)}
+                    value={formData.college_id} 
+                    onValueChange={handleSelectChange}
+                    disabled={loading}
+                    required
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a college" />
                     </SelectTrigger>
                     <SelectContent>
                       {colleges.map((college) => (
-                        <SelectItem key={college.id} value={college.id}>
-                          {college.name}
+                        <SelectItem key={college.college_id} value={college.college_id}>
+                          {college.college_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 
-                {/* Department Name Field */}
                 <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">Department Name</label>
+                  <label htmlFor="department_name" className="text-sm font-medium">Department Name *</label>
                   <input
-                    id="name"
+                    id="department_name"
                     type="text"
-                    name="name"
+                    name="department_name"
                     className="w-full px-3 py-2 border rounded-md"
-                    value={formData.name}
+                    value={formData.department_name}
                     onChange={handleChange}
+                    disabled={loading}
                     required
                   />
                 </div>
               </CardContent>
               
               <CardFooter className="flex justify-end space-x-2">
-                <Button variant="outline" type="button" onClick={() => navigate("/users/departments")}>
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  onClick={() => navigate("/users?tab=departments")}
+                  disabled={loading}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  Add Department
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Adding..." : "Add Department"}
                 </Button>
               </CardFooter>
             </form>

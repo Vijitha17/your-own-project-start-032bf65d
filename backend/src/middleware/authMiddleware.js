@@ -1,56 +1,84 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
+const pool = require('../config/database');
 
-const authMiddleware = (roles = []) => {
-    return async (req, res, next) => {
-        try {
-            // Get token from header
-            const token = req.header('Authorization')?.replace('Bearer ', '');
-            
-            if (!token) {
-                return res.status(401).json({ message: 'No token, authorization denied' });
-            }
-
-            // Verify token
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            
-            // Get user from database
-            const user = await User.findById(decoded.user_id);
-            
-            if (!user) {
-                return res.status(401).json({ message: 'User not found' });
-            }
-
-            if (!user.is_active) {
-                return res.status(401).json({ message: 'User account is deactivated' });
-            }
-
-            // Check if user has required role
-            if (roles.length > 0 && !roles.includes(user.role_name)) {
-                return res.status(403).json({ message: 'Access denied' });
-            }
-
-            // Add user to request object
-            req.user = user;
-            next();
-        } catch (error) {
-            res.status(401).json({ message: 'Token is not valid' });
-        }
-    };
+const ROLES = {
+  MANAGEMENT_ADMIN: 'Management_Admin',
+  MANAGEMENT: 'Management',
+  PRINCIPAL: 'Principal',
+  HOD: 'HOD',
+  DEPARTMENT_INCHARGE: 'Department_Incharge'
 };
 
-// Specific role middleware
-const isManagementAdmin = authMiddleware(['Management_Admin']);
-const isManagement = authMiddleware(['Management']);
-const isPrincipal = authMiddleware(['Principal']);
-const isHOD = authMiddleware(['HOD']);
-const isDepartmentIncharge = authMiddleware(['Department_Incharge']);
+const authMiddleware = (allowedRoles = []) => {
+  return async (req, res, next) => {
+    try {
+      const token = req.header('Authorization')?.replace('Bearer ', '');
+      
+      if (!token) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication token required'
+        });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      const [users] = await pool.query(
+        `SELECT u.*, c.college_name, d.department_name 
+         FROM users u
+         LEFT JOIN colleges c ON u.college_id = c.college_id
+         LEFT JOIN departments d ON u.department_id = d.department_id
+         WHERE u.user_id = ?`,
+        [decoded.user_id]
+      );
+
+      if (!users.length) {
+        return res.status(401).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      const user = users[0];
+
+      // Check if user is active
+      if (!user.is_active) {
+        return res.status(403).json({
+          success: false,
+          message: 'User account is inactive'
+        });
+      }
+
+      // Check role authorization
+      if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+        return res.status(403).json({
+          success: false,
+          message: `Insufficient permissions. Required roles: ${allowedRoles.join(', ')}`
+        });
+      }
+
+      req.user = user;
+      next();
+    } catch (error) {
+      console.error('Authentication error:', error);
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          message: 'Session expired. Please login again'
+        });
+      }
+      res.status(401).json({
+        success: false,
+        message: 'Invalid authentication token'
+      });
+    }
+  };
+};
+
+const isManagementAdmin = authMiddleware([ROLES.MANAGEMENT_ADMIN]);
 
 module.exports = {
-    authMiddleware,
-    isManagementAdmin,
-    isManagement,
-    isPrincipal,
-    isHOD,
-    isDepartmentIncharge
-}; 
+  authMiddleware,
+  isManagementAdmin,
+  ROLES
+};

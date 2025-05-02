@@ -14,7 +14,61 @@ import {
 } from "lucide-react";
 
 export const menuByRole = {
-  management_people: [
+  // Match exact keys as stored in localStorage from login
+  "Management_Admin": [
+    {
+      title: "Dashboard",
+      path: "/dashboard",
+      icon: LayoutDashboard
+    },
+    {
+      title: "Requirement",
+      path: "/requirement/current",
+      icon: PackageOpen
+    },
+    {
+      title: "Stock Management",
+      path: "/stock",
+      icon: Box
+    },
+    {
+      title: "Stock Movement",
+      path: "/movement/request-status",
+      icon: ArrowDown,
+    },
+    {
+      title: "Vendor Management",
+      path: "/vendor/service",
+      icon: Truck
+    },
+    {
+      title: "Purchase",
+      path: "/purchase/create-request",
+      icon: ShoppingCart
+    },
+    {
+      title: "User Management",
+      path: "/users/list",
+      icon: Users
+    },
+    {
+      title: "Expenditure",
+      path: "/expenditure/add",
+      icon: DollarSign
+    },
+    {
+      title: "Request & Approval",
+      path: "/request/history",
+      icon: History
+    },
+    {
+      title: "Reports",
+      path: "/reports",
+      icon: FileText
+    }
+  ],
+  
+  "Management": [
     {
       title: "Dashboard",
       path: "/dashboard",
@@ -120,61 +174,8 @@ export const menuByRole = {
       icon: FileText
     }
   ],
-
-  management_admin: [
-    {
-      title: "Dashboard",
-      path: "/dashboard",
-      icon: LayoutDashboard
-    },
-    {
-      title: "Requirement",
-      path: "/requirement/current",
-      icon: PackageOpen
-    },
-    {
-      title: "Stock Management",
-      path: "/stock",
-      icon: Box
-    },
-    {
-      title: "Stock Movement",
-      path: "/movement/request-status",
-      icon: ArrowDown,
-    },
-    {
-      title: "Vendor Management",
-      path: "/vendor/service",
-      icon: Truck
-    },
-    {
-      title: "Purchase",
-      path: "/purchase/create-request",
-      icon: ShoppingCart
-    },
-    {
-      title: "User Management",
-      path: "/users/list",
-      icon: Users
-    },
-    {
-      title: "Expenditure",
-      path: "/expenditure/add",
-      icon: DollarSign
-    },
-    {
-      title: "Request & Approval",
-      path: "/request/history",
-      icon: History
-    },
-    {
-      title: "Reports",
-      path: "/reports",
-      icon: FileText
-    }
-  ],
   
-  principal: [
+  "Principal": [
     {
       title: "Dashboard",
       path: "/dashboard",
@@ -212,7 +213,7 @@ export const menuByRole = {
     }
   ],
   
-  hod: [
+  "HOD": [
     {
       title: "Dashboard",
       path: "/dashboard",
@@ -250,7 +251,7 @@ export const menuByRole = {
     }
   ],
   
-  department_admin: [
+  "Department_Incharge": [
     {
       title: "Dashboard",
       path: "/dashboard",
@@ -287,4 +288,16 @@ export const menuByRole = {
       icon: FileText
     }
   ]
+};
+
+// Helper function to get menu for role with fallback
+export const getMenuForRole = (role) => {
+  // First try the exact role as provided
+  if (menuByRole[role]) {
+    return menuByRole[role];
+  }
+  
+  // If not found, log available roles for debugging
+  console.warn(`Role "${role}" not found directly in menuByRole. Available roles:`, Object.keys(menuByRole));
+  return [];
 };

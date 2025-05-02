@@ -1,4 +1,3 @@
-// UserManagement.jsx (updated)
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";

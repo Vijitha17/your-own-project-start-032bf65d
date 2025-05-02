@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Table,
@@ -13,84 +14,36 @@ import { Edit, Trash2, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
   getDepartments,
-  createDepartment,
-  updateDepartment,
   deleteDepartment,
-  getColleges,
 } from "@/lib/api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const departmentSchema = z.object({
-  name: z.string().min(1, "Department name is required"),
-  code: z.string().min(1, "Department code is required"),
-  college_id: z.string().min(1, "College is required"),
-});
 
 const DepartmentList = () => {
+  const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
-  const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    code: "",
-    college_id: "",
-  });
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
-
-  const form = useForm({
-    resolver: zodResolver(departmentSchema),
-    defaultValues: {
-      name: "",
-      code: "",
-      college_id: "",
-    },
-  });
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [departmentsData, collegesData] = await Promise.all([
-        getDepartments(),
-        getColleges(),
-      ]);
-      console.log('Departments:', departmentsData);
-      console.log('Colleges:', collegesData);
-      setDepartments(departmentsData);
-      setColleges(collegesData);
+      const departmentsData = await getDepartments();
+      
+      // Ensure we have an array even if API returns undefined
+      const processedDepartments = Array.isArray(departmentsData) 
+        ? departmentsData 
+        : [];
+      
+      setDepartments(processedDepartments);
     } catch (error) {
-      console.error('Fetch error:', error);
+      console.error("Error fetching departments:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch data",
+        description: error.message || "Failed to fetch departments",
         variant: "destructive",
       });
+      setDepartments([]);
     } finally {
       setLoading(false);
     }
@@ -100,47 +53,9 @@ const DepartmentList = () => {
     fetchData();
   }, []);
 
-  const handleSubmit = async (data) => {
+  const handleDelete = async (departmentId) => {
     try {
-      if (editingDepartment) {
-        await updateDepartment(editingDepartment.department_id, data);
-        toast({
-          title: "Success",
-          description: "Department updated successfully",
-        });
-      } else {
-        await createDepartment(data);
-        toast({
-          title: "Success",
-          description: "Department created successfully",
-        });
-      }
-      setIsDialogOpen(false);
-      setEditingDepartment(null);
-      form.reset();
-      fetchData();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save department",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEdit = (department) => {
-    setEditingDepartment(department);
-    form.reset({
-      name: department.department_name,
-      code: department.department_code,
-      college_id: department.college_id,
-    });
-    setIsDialogOpen(true);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await deleteDepartment(id);
+      await deleteDepartment(departmentId);
       toast({
         title: "Success",
         description: "Department deleted successfully",
@@ -155,21 +70,24 @@ const DepartmentList = () => {
     }
   };
 
+  const filteredDepartments = departments.filter(dept => 
+    dept.department_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dept.college_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-[150px]" />
+          <div className="flex space-x-2">
+            <Skeleton className="h-10 w-[250px]" />
+            <Skeleton className="h-10 w-[150px]" />
+          </div>
+        </div>
         {[...Array(5)].map((_, i) => (
           <Skeleton key={i} className="h-12 w-full" />
         ))}
-      </div>
-    );
-  }
-
-  if (departments.length === 0 && !loading) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No departments found or failed to load data.</p>
-        <Button onClick={() => setIsDialogOpen(true)}>Add Department</Button>
       </div>
     );
   }
@@ -178,141 +96,78 @@ const DepartmentList = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Departments</h2>
-        <Button onClick={() => setIsDialogOpen(true)}>Add Department</Button>
-      </div>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button>
+        <div className="flex space-x-2">
+          <div className="relative w-64">
+            <input
+              type="text"
+              placeholder="Search departments..."
+              className="pl-4 pr-4 py-2 w-full rounded-md border border-input bg-background"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Button onClick={() => navigate("/users/departments/add")}>
             <Plus className="h-4 w-4 mr-2" />
             Add Department
           </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingDepartment ? "Edit Department" : "Add New Department"}
-            </DialogTitle>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department Code</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="college_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>College</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select college" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {colleges.map((college) => (
-                          <SelectItem
-                            key={college.college_id}
-                            value={college.college_id}
-                          >
-                            {college.college_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => {
-                    setIsDialogOpen(false);
-                    setEditingDepartment(null);
-                    form.reset();
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {editingDepartment ? "Update" : "Create"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
 
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Code</TableHead>
+              <TableHead>Department Name</TableHead>
               <TableHead>College</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {departments.map((department) => (
-              <TableRow key={department.department_id}>
-                <TableCell>{department.department_id}</TableCell>
-                <TableCell>{department.department_name}</TableCell>
-                <TableCell>{department.department_code}</TableCell>
-                <TableCell>
-                  {colleges.find(c => c.college_id === department.college_id)?.college_name || department.college_id}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(department)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(department.department_id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+            {filteredDepartments.length > 0 ? (
+              filteredDepartments.map((department) => (
+                <TableRow key={department.department_id}>
+                  <TableCell>{department.department_name}</TableCell>
+                  <TableCell>{department.college_name}</TableCell>
+                  <TableCell>
+                    {new Date(department.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/users/departments/edit/${department.department_id}`)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(department.department_id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-4">
+                  {departments.length === 0 ? (
+                    <div>
+                      <p>No departments found in the database</p>
+                      <p className="text-sm text-gray-500">
+                        Check your API endpoint is returning data
+                      </p>
+                    </div>
+                  ) : (
+                    "No departments match your search"
+                  )}
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>

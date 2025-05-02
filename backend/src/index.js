@@ -10,7 +10,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:8080', 'http://localhost:5173'],
+  origin: ['http://localhost:8080', 'http://localhost:5173', 'http://127.0.0.1:8080', 'http://127.0.0.1:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -20,6 +20,9 @@ const corsOptions = {
 
 // Apply CORS middleware
 app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
 // Middleware
 app.use(express.json());
@@ -33,13 +36,14 @@ pool.getConnection()
   })
   .catch(err => {
     console.error('Database connection failed:', err);
+    process.exit(1);
   });
 
 // Routes
 app.use('/api/auth', userRoutes);
-app.use('/api/auth/colleges', collegeRoutes);
-app.use('/api/auth/departments', departmentRoutes);
-app.use('/api/auth/locations', locationRoutes);
+app.use('/api/colleges', collegeRoutes);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/locations', locationRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
@@ -52,9 +56,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-module.exports = app;
-
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 });

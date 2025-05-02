@@ -19,6 +19,8 @@ import ExpenditureManagement from "./pages/ExpenditureManagement.jsx";
 import RequestApproval from "./pages/RequestApproval.jsx";
 import Profile from "./pages/Profile.jsx";
 import AuthRoute from "./components/AuthRoute.jsx";
+import AddDepartmentForm from "./components/users/AddDepartmentForm.jsx";
+import AddCollegeForm from "./components/users/AddCollegeForm.jsx";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,12 @@ const App = () => (
             <Route index element={<Outlet />} />
             <Route path=":id" element={<Outlet />} />
           </Route>
+          
+          {/* Add Department Form Route */}
+          <Route path="/users/departments/add" element={<AuthRoute><AddDepartmentForm /></AuthRoute>} />
+          
+          {/* Add College Form Route */}
+          <Route path="/users/colleges/add" element={<AuthRoute><AddCollegeForm /></AuthRoute>} />
 
           {/* Requirement Routes */}
           <Route path="/requirement" element={<AuthRoute><Requirements /></AuthRoute>}>
