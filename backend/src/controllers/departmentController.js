@@ -51,6 +51,7 @@ const getDepartmentById = async (req, res) => {
 const getDepartmentsByCollege = async (req, res) => {
   try {
     const { college_id } = req.params;
+    console.log(`Fetching departments for college_id: ${college_id}`); // Added log
     
     // Verify college exists
     const [college] = await pool.query(
@@ -59,6 +60,7 @@ const getDepartmentsByCollege = async (req, res) => {
     );
     
     if (!college.length) {
+      console.log(`College not found for college_id: ${college_id}`); // Added log
       return res.status(404).json({
         success: false,
         message: 'College not found'
@@ -66,6 +68,7 @@ const getDepartmentsByCollege = async (req, res) => {
     }
 
     const departments = await Department.getByCollege(college_id);
+    console.log(`Departments found: ${JSON.stringify(departments)}`); // Added log
     
     res.json({
       success: true,

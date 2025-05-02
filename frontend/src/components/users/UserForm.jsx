@@ -98,7 +98,20 @@ const UserForm = ({ onSubmit, onCancel }) => {
         console.log("Fetching departments for college:", selectedCollegeId); // Debug log
         const data = await getDepartmentsByCollege(selectedCollegeId);
         console.log("Fetched departments:", data); // Debug log
-        setDepartments(data || []);
+        if (Array.isArray(data)) {
+          setDepartments(data);
+          if (data.length === 0) {
+            form.setValue("department_id", "");
+          }
+        } else if (data && Array.isArray(data.data)) {
+          setDepartments(data.data);
+          if (data.data.length === 0) {
+            form.setValue("department_id", "");
+          }
+        } else {
+          setDepartments([]);
+          form.setValue("department_id", "");
+        }
       } catch (error) {
         console.error("Error fetching departments:", error);
         toast({
@@ -107,6 +120,7 @@ const UserForm = ({ onSubmit, onCancel }) => {
           variant: "destructive",
         });
         setDepartments([]);
+        form.setValue("department_id", "");
       } finally {
         setDepartmentLoading(false);
       }

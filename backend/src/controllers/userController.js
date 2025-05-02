@@ -66,7 +66,36 @@ const login = async (req, res) => {
 // Create new user (Management Admin only)
 const createUser = async (req, res) => {
     try {
-        const { user_id, email, password, role, college_id, department_id, first_name, last_name } = req.body;
+        let { user_id, email, password, role, college_id, department_id, first_name, last_name } = req.body;
+
+        // Normalize role to lowercase for comparison
+        const normalizedRole = role ? role.toLowerCase() : '';
+
+        // Role-based validation and adjustment
+        if (normalizedRole === 'management' || normalizedRole === 'management_admin') {
+            // No college or department required
+            college_id = null;
+            department_id = null;
+        } else if (normalizedRole === 'principal') {
+            // College required, department not required
+            if (!college_id) {
+                return res.status(400).json({ message: 'College ID is required for Principal role' });
+            }
+            department_id = null;
+        } else if (normalizedRole === 'hod' || normalizedRole === 'department_incharge') {
+            // Both college and department required
+            if (!college_id) {
+                return res.status(400).json({ message: 'College ID is required for this role' });
+            }
+            if (!department_id) {
+                return res.status(400).json({ message: 'Department ID is required for this role' });
+            }
+        } else {
+            // For other roles, you can define your own logic or default behavior
+            // For now, require college and department as optional
+            college_id = college_id || null;
+            department_id = department_id || null;
+        }
 
         // Check if user already exists
         const existingUser = await User.findByEmail(email);
