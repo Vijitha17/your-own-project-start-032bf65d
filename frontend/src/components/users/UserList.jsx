@@ -8,30 +8,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Pencil, Trash2 } from "lucide-react";
 
-const UserList = ({ users, loading, onUpdate, onDelete }) => {
+const UserList = ({ users, loading, onUpdate, onDelete, showActions }) => {
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-12 w-full" />
-        ))}
-      </div>
-    );
+    return <div>Loading users...</div>;
   }
 
-  if (!users || users.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No users found</p>
-      </div>
-    );
+  if (users.length === 0) {
+    return <div>No users found</div>;
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="bg-white rounded-lg shadow overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
@@ -40,35 +29,47 @@ const UserList = ({ users, loading, onUpdate, onDelete }) => {
             <TableHead>Role</TableHead>
             <TableHead>College</TableHead>
             <TableHead>Department</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>Status</TableHead>
+            {showActions && <TableHead>Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.user_id}>
-              <TableCell>{`${user.first_name || ''} ${user.last_name || ''}`}</TableCell>
-              <TableCell>{user.email || 'N/A'}</TableCell>
-              <TableCell>{user.role || user.role_name || 'N/A'}</TableCell>
-              <TableCell>{user.college_name || 'N/A'}</TableCell>
-              <TableCell>{user.department_name || 'N/A'}</TableCell>
+              <TableCell>{`${user.first_name} ${user.last_name}`}</TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.role}</TableCell>
+              <TableCell>{user.college_name || "-"}</TableCell>
+              <TableCell>{user.department_name || "-"}</TableCell>
               <TableCell>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onUpdate(user.user_id, user)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDelete(user.user_id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  user.is_active 
+                    ? "bg-green-100 text-green-800" 
+                    : "bg-red-100 text-red-800"
+                }`}>
+                  {user.is_active ? "Active" : "Inactive"}
+                </span>
               </TableCell>
+              {showActions && (
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onUpdate(user.user_id, user)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(user.user_id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

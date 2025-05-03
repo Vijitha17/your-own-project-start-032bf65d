@@ -73,6 +73,7 @@ const Dashboard = () => {
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+    console.log("Sidebar toggled to:", !sidebarOpen); // For debugging
   };
   
   return (
@@ -80,7 +81,7 @@ const Dashboard = () => {
       <Navbar toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
       
       <div className="flex flex-1">
-        <Sidebar isOpen={sidebarOpen} />
+        <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
         
         <main className={`flex-1 p-6 md:p-8 transition-all duration-300 ${sidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
           <h1 className="text-2xl font-bold mb-6">Dashboard</h1>

@@ -29,6 +29,11 @@ const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   
+  // Get user role from auth context or localStorage
+  const userRole = localStorage.getItem("userRole") || "";
+  const isAdmin = userRole === "Management_Admin";
+  const isPrincipal = userRole === "Principal";
+  
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -134,7 +139,8 @@ const UserManagement = () => {
                 />
               </div>
               
-              {!isCreating && (
+              {/* Only show Add User button for Admin */}
+              {isAdmin && !isCreating && (
                 <Button onClick={() => setIsCreating(true)}>
                   <UserPlus className="h-4 w-4 mr-2" />
                   Add User
@@ -164,40 +170,56 @@ const UserManagement = () => {
                   <User className="h-4 w-4 mr-2" />
                   Users
                 </TabsTrigger>
-                <TabsTrigger value="colleges" className="flex items-center">
-                  <Building className="h-4 w-4 mr-2" />
-                  Colleges
-                </TabsTrigger>
+                
+                {/* Only show Colleges tab for Admin */}
+                {isAdmin && (
+                  <TabsTrigger value="colleges" className="flex items-center">
+                    <Building className="h-4 w-4 mr-2" />
+                    Colleges
+                  </TabsTrigger>
+                )}
+                
                 <TabsTrigger value="departments" className="flex items-center">
                   <BookOpen className="h-4 w-4 mr-2" />
                   Departments
                 </TabsTrigger>
-                <TabsTrigger value="locations" className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Locations
-                </TabsTrigger>
+                
+                {/* Only show Locations tab for Admin */}
+                {isAdmin && (
+                  <TabsTrigger value="locations" className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Locations
+                  </TabsTrigger>
+                )}
               </TabsList>
               
               <TabsContent value="users" className="space-y-4">
                 <UserList 
                   users={filteredUsers}
                   loading={loading}
-                  onUpdate={handleUpdateUser}
-                  onDelete={handleDeleteUser}
+                  onUpdate={isAdmin ? handleUpdateUser : null}
+                  onDelete={isAdmin ? handleDeleteUser : null}
+                  showActions={isAdmin} // Pass this prop to control action column visibility
                 />
               </TabsContent>
               
-              <TabsContent value="colleges" className="space-y-4">
-                <CollegeList />
-              </TabsContent>
+              {/* Only render college content for Admin */}
+              {isAdmin && (
+                <TabsContent value="colleges" className="space-y-4">
+                  <CollegeList />
+                </TabsContent>
+              )}
               
               <TabsContent value="departments" className="space-y-4">
                 <DepartmentList />
               </TabsContent>
               
-              <TabsContent value="locations" className="space-y-4">
-                <LocationList />
-              </TabsContent>
+              {/* Only render locations content for Admin */}
+              {isAdmin && (
+                <TabsContent value="locations" className="space-y-4">
+                  <LocationList />
+                </TabsContent>
+              )}
             </Tabs>
           )}
         </main>

@@ -1,10 +1,27 @@
 const Department = require('../models/departmentModel');
 const pool = require('../config/database');
 
-// Get all departments with college names
+// Get all departments (filtered by college for Principal)
 const getAllDepartments = async (req, res) => {
   try {
-    const departments = await Department.getAll();
+    let departments;
+    
+    if (req.user.role === 'Principal') {
+      if (!req.user.college_id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Principal must be assigned to a college'
+        });
+      }
+      departments = await Department.getByCollege(req.user.college_id);
+    } else if (req.user.role === 'Management_Admin') {
+      departments = await Department.getAll();
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized access'
+      });
+    }
     
     res.json({
       success: true,

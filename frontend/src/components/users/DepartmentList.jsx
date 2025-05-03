@@ -24,6 +24,9 @@ const DepartmentList = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const userRole = localStorage.getItem("userRole") || "";
+  const isPrincipal = userRole === "Principal";
+  const isAdmin = userRole === "Management_Admin";
 
   const fetchData = async () => {
     try {
@@ -82,7 +85,7 @@ const DepartmentList = () => {
           <Skeleton className="h-8 w-[150px]" />
           <div className="flex space-x-2">
             <Skeleton className="h-10 w-[250px]" />
-            <Skeleton className="h-10 w-[150px]" />
+            {!isPrincipal && <Skeleton className="h-10 w-[150px]" />}
           </div>
         </div>
         {[...Array(5)].map((_, i) => (
@@ -106,10 +109,12 @@ const DepartmentList = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button onClick={() => navigate("/users/departments/add")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Department
-          </Button>
+          {!isPrincipal && (
+            <Button onClick={() => navigate("/users/departments/add")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Department
+            </Button>
+          )}
         </div>
       </div>
 
@@ -120,7 +125,7 @@ const DepartmentList = () => {
               <TableHead>Department Name</TableHead>
               <TableHead>College</TableHead>
               <TableHead>Created At</TableHead>
-              <TableHead>Actions</TableHead>
+              {!isPrincipal && <TableHead>Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -132,29 +137,31 @@ const DepartmentList = () => {
                   <TableCell>
                     {new Date(department.created_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate(`/users/departments/edit/${department.department_id}`)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(department.department_id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  {!isPrincipal && (
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate(`/users/departments/edit/${department.department_id}`)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(department.department_id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-4">
+                <TableCell colSpan={isPrincipal ? 3 : 4} className="text-center py-4">
                   {departments.length === 0 ? (
                     <div>
                       <p>No departments found in the database</p>

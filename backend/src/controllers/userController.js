@@ -1,7 +1,6 @@
 const User = require('../models/userModel');
 const { ROLES } = require('../middleware/authMiddleware');
 
-
 // Login user
 const login = async (req, res) => {
     try {
@@ -61,7 +60,7 @@ const login = async (req, res) => {
         message: 'Internal server error during authentication'
       });
     }
-  };
+};
 
 // Create new user (Management Admin only)
 const createUser = async (req, res) => {
@@ -140,10 +139,26 @@ const updateUser = async (req, res) => {
     }
 };
 
-// Get all users (Management Admin only)
+// Get all users (filtered by college for Principal)
 const getAllUsers = async (req, res) => {
     try {
-        const users = await User.getAllUsers();
+        let users;
+        
+        if (req.user.role === ROLES.PRINCIPAL) {
+            if (!req.user.college_id) {
+                return res.status(403).json({ 
+                    message: 'Principal must be assigned to a college' 
+                });
+            }
+            users = await User.getUsersByCollege(req.user.college_id);
+        } else if (req.user.role === ROLES.MANAGEMENT_ADMIN) {
+            users = await User.getAllUsers();
+        } else {
+            return res.status(403).json({ 
+                message: 'Unauthorized access' 
+            });
+        }
+
         res.json(users);
     } catch (error) {
         console.error('Get all users error:', error);
@@ -161,6 +176,11 @@ const getUserById = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        // If Principal, verify they are accessing a user from their college
+        if (req.user.role === ROLES.PRINCIPAL && user.college_id !== req.user.college_id) {
+            return res.status(403).json({ message: 'Unauthorized access to this user' });
+        }
+
         res.json(user);
     } catch (error) {
         console.error('Get user by ID error:', error);
@@ -172,6 +192,12 @@ const getUserById = async (req, res) => {
 const getUsersByCollege = async (req, res) => {
     try {
         const { college_id } = req.params;
+        
+        // If Principal, verify they are accessing their own college
+        if (req.user.role === ROLES.PRINCIPAL && college_id !== req.user.college_id) {
+            return res.status(403).json({ message: 'Unauthorized access to this college' });
+        }
+
         const users = await User.getUsersByCollege(college_id);
         res.json(users);
     } catch (error) {
@@ -184,6 +210,12 @@ const getUsersByCollege = async (req, res) => {
 const getUsersByDepartment = async (req, res) => {
     try {
         const { college_id, department_id } = req.params;
+        
+        // If Principal, verify they are accessing their own college
+        if (req.user.role === ROLES.PRINCIPAL && college_id !== req.user.college_id) {
+            return res.status(403).json({ message: 'Unauthorized access to this department' });
+        }
+
         const users = await User.getUsersByDepartment(college_id, department_id);
         res.json(users);
     } catch (error) {
@@ -207,6 +239,12 @@ const getAllColleges = async (req, res) => {
 const getDepartmentsByCollege = async (req, res) => {
     try {
         const { college_id } = req.params;
+        
+        // If Principal, verify they are accessing their own college
+        if (req.user.role === ROLES.PRINCIPAL && college_id !== req.user.college_id) {
+            return res.status(403).json({ message: 'Unauthorized access to this college' });
+        }
+
         const departments = await User.getDepartmentsByCollege(college_id);
         res.json(departments);
     } catch (error) {

@@ -142,17 +142,7 @@ export const menuByRole = {
         }
       ]
     },
-    {
-      title: "User Management",
-      path: "/users/list",
-      icon: Users,
-      submenu: [
-        {
-          title: "User List",
-          path: "/users/list"
-        }
-      ]
-    },
+    
     {
       title: "Expenditure",
       path: "/expenditure/purchase",
@@ -234,11 +224,7 @@ export const menuByRole = {
       path: "/movement/request-status",
       icon: ArrowDown,
     },
-    {
-      title: "User Management",
-      path: "/users/list",
-      icon: Users
-    },
+    
     {
       title: "Request & Approval",
       path: "/request/create",
@@ -272,11 +258,7 @@ export const menuByRole = {
       path: "/movement/request-status",
       icon: ArrowDown,
     },
-    {
-      title: "User Management",
-      path: "/users/list",
-      icon: Users
-    },
+    
     {
       title: "Request",
       path: "/request/create",
