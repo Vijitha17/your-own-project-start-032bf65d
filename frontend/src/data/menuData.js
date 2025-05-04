@@ -108,11 +108,7 @@ export const menuByRole = {
         }
       ]
     },
-    {
-      title: "Vendor Management",
-      path: "/vendor/service",
-      icon: Truck
-    },
+   
     {
       title: "Purchase",
       path: "/purchase/approve",
