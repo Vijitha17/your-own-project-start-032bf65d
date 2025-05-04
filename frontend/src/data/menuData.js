@@ -111,17 +111,7 @@ export const menuByRole = {
     {
       title: "Vendor Management",
       path: "/vendor/service",
-      icon: Truck,
-      submenu: [
-        {
-          title: "Service Vendor",
-          path: "/vendor/service"
-        },
-        {
-          title: "Product Vendor",
-          path: "/vendor/product"
-        }
-      ]
+      icon: Truck
     },
     {
       title: "Purchase",

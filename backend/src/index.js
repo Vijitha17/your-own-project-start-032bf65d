@@ -1,10 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const morgan = require('morgan');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const pool = require('./config/database');
 const userRoutes = require('./routes/userRoutes');
 const collegeRoutes = require('./routes/collegeRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const locationRoutes = require('./routes/locationRoutes');
+const vendorRoutes = require('./routes/vendorRoutes');
 
 const app = express();
 
@@ -23,6 +27,17 @@ app.use(cors(corsOptions));
 
 // Handle preflight requests
 app.options('*', cors(corsOptions));
+
+// Additional security middleware
+app.use(helmet());
+app.use(morgan('dev'));
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
 
 // Middleware
 app.use(express.json());
@@ -44,6 +59,7 @@ app.use('/api/auth', userRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/locations', locationRoutes);
+app.use('/api/vendors', vendorRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
@@ -53,7 +69,10 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  res.status(500).json({ 
+    success: false,
+    message: 'Something went wrong!' 
+  });
 });
 
 const PORT = process.env.PORT || 5000;

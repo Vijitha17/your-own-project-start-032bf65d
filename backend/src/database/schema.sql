@@ -52,3 +52,23 @@ CREATE TABLE users (
     FOREIGN KEY (college_id) REFERENCES colleges(college_id) ON DELETE CASCADE,
     FOREIGN KEY (department_id) REFERENCES departments(department_id) ON DELETE SET NULL
 );
+
+-- Create Vendors table with VARCHAR ID
+CREATE TABLE vendors (
+    vendor_id VARCHAR(50) PRIMARY KEY,
+    vendor_name VARCHAR(100) NOT NULL UNIQUE,
+    vendor_type ENUM('Service', 'Product', 'Both') NOT NULL,
+    contact_person VARCHAR(100),
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    address_line1 VARCHAR(255),
+    address_line2 VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    postal_code VARCHAR(20),
+    country VARCHAR(100),
+    status ENUM('Active', 'Inactive', 'Blacklisted') DEFAULT 'Active',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

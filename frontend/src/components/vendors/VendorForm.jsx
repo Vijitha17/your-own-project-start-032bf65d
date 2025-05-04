@@ -14,13 +14,17 @@ const VendorForm = ({ vendor, onCancel, onSave }) => {
   const [formData, setFormData] = useState(vendor || {
     vendor_name: "",
     vendor_type: "",
+    contact_person: "",
     phone: "",
     email: "",
-    description: "",
-    contact_name: "",
-    contact_phone: "",
-    contact_email: "",
-    address: ""
+    address_line1: "",
+    address_line2: "",
+    city: "",
+    state: "",
+    postal_code: "",
+    country: "Tamil Nadu",
+    status: "Active",
+    notes: ""
   });
 
   const handleChange = (e) => {
@@ -36,6 +40,21 @@ const VendorForm = ({ vendor, onCancel, onSave }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
+        {vendor && (
+          <div className="space-y-2 md:col-span-2">
+            <label htmlFor="vendor_id" className="text-sm font-medium">
+              Vendor ID
+            </label>
+            <input
+              id="vendor_id"
+              type="text"
+              className="w-full px-3 py-2 border rounded-md bg-gray-100"
+              value={vendor.vendor_id}
+              disabled
+            />
+          </div>
+        )}
+
         <div className="space-y-2">
           <label htmlFor="vendor_name" className="text-sm font-medium">
             Vendor Name *
@@ -67,13 +86,29 @@ const VendorForm = ({ vendor, onCancel, onSave }) => {
             <SelectContent>
               <SelectItem value="Service">Service Vendor</SelectItem>
               <SelectItem value="Product">Product Vendor</SelectItem>
+              <SelectItem value="Both">Both</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div className="space-y-2">
+          <label htmlFor="contact_person" className="text-sm font-medium">
+            Contact Person *
+          </label>
+          <input
+            id="contact_person"
+            name="contact_person"
+            type="text"
+            className="w-full px-3 py-2 border rounded-md"
+            value={formData.contact_person}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
           <label htmlFor="phone" className="text-sm font-medium">
-            Vendor Phone *
+            Phone *
           </label>
           <input
             id="phone"
@@ -88,7 +123,7 @@ const VendorForm = ({ vendor, onCancel, onSave }) => {
         
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium">
-            Vendor Email *
+            Email *
           </label>
           <input
             id="email"
@@ -100,78 +135,127 @@ const VendorForm = ({ vendor, onCancel, onSave }) => {
             required
           />
         </div>
-        
-        <div className="space-y-2 md:col-span-2">
-          <label htmlFor="description" className="text-sm font-medium">
-            Description
+
+        <div className="space-y-2">
+          <label htmlFor="status" className="text-sm font-medium">
+            Status *
           </label>
-          <textarea
-            id="description"
-            name="description"
-            className="w-full px-3 py-2 border rounded-md"
-            rows={3}
-            value={formData.description}
-            onChange={handleChange}
-          />
+          <Select 
+            name="status" 
+            value={formData.status}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+            required
+          >
+            <SelectTrigger id="status">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Inactive">Inactive</SelectItem>
+              <SelectItem value="Blacklisted">Blacklisted</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
         <div className="space-y-2">
-          <label htmlFor="contact_name" className="text-sm font-medium">
-            Contact Person *
+          <label htmlFor="address_line1" className="text-sm font-medium">
+            Address Line 1 *
           </label>
           <input
-            id="contact_name"
-            name="contact_name"
+            id="address_line1"
+            name="address_line1"
             type="text"
             className="w-full px-3 py-2 border rounded-md"
-            value={formData.contact_name}
+            value={formData.address_line1}
             onChange={handleChange}
             required
           />
         </div>
         
         <div className="space-y-2">
-          <label htmlFor="contact_phone" className="text-sm font-medium">
-            Contact Phone *
+          <label htmlFor="address_line2" className="text-sm font-medium">
+            Address Line 2
           </label>
           <input
-            id="contact_phone"
-            name="contact_phone"
-            type="tel"
+            id="address_line2"
+            name="address_line2"
+            type="text"
             className="w-full px-3 py-2 border rounded-md"
-            value={formData.contact_phone}
+            value={formData.address_line2}
+            onChange={handleChange}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="city" className="text-sm font-medium">
+            City *
+          </label>
+          <input
+            id="city"
+            name="city"
+            type="text"
+            className="w-full px-3 py-2 border rounded-md"
+            value={formData.city}
             onChange={handleChange}
             required
           />
         </div>
         
         <div className="space-y-2">
-          <label htmlFor="contact_email" className="text-sm font-medium">
-            Contact Email *
+          <label htmlFor="state" className="text-sm font-medium">
+            State *
           </label>
           <input
-            id="contact_email"
-            name="contact_email"
-            type="email"
+            id="state"
+            name="state"
+            type="text"
             className="w-full px-3 py-2 border rounded-md"
-            value={formData.contact_email}
+            value={formData.state}
             onChange={handleChange}
             required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="postal_code" className="text-sm font-medium">
+            Postal Code *
+          </label>
+          <input
+            id="postal_code"
+            name="postal_code"
+            type="text"
+            className="w-full px-3 py-2 border rounded-md"
+            value={formData.postal_code}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="country" className="text-sm font-medium">
+            Country
+          </label>
+          <input
+            id="country"
+            name="country"
+            type="text"
+            className="w-full px-3 py-2 border rounded-md"
+            value={formData.country}
+            onChange={handleChange}
           />
         </div>
         
         <div className="space-y-2 md:col-span-2">
-          <label htmlFor="address" className="text-sm font-medium">
-            Address *
+          <label htmlFor="notes" className="text-sm font-medium">
+            Notes
           </label>
           <textarea
-            id="address"
-            name="address"
+            id="notes"
+            name="notes"
             className="w-full px-3 py-2 border rounded-md"
             rows={3}
-            value={formData.address}
+            value={formData.notes}
             onChange={handleChange}
-            required
           />
         </div>
       </div>

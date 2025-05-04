@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -51,7 +51,6 @@ api.interceptors.response.use(
     });
   }
 );
-
 
 // Auth API
 export const login = async (credentials) => {
@@ -141,7 +140,6 @@ export const deleteCollege = async (id) => {
 export const getDepartments = async () => {
   try {
     const response = await api.get('/departments');
-    // Handle both possible response structures:
     return response.data?.data || response.data || [];
   } catch (error) {
     console.error('Get departments error:', error);
@@ -169,11 +167,71 @@ export const deleteDepartment = async (departmentId) => {
   return response;
 };
 
-
 // Location API
 export const getLocations = () => api.get('/locations').then(res => res.data);
 export const createLocation = (data) => api.post('/locations', data).then(res => res.data);
 export const updateLocation = (id, data) => api.put(`/locations/${id}`, data).then(res => res.data);
 export const deleteLocation = (id) => api.delete(`/locations/${id}`).then(res => res.data);
+
+// Vendor API
+export const getVendors = async () => {
+  try {
+    const response = await api.get('/vendors');
+    return response.data?.data || response.data || [];
+  } catch (error) {
+    console.error('Get vendors error:', error);
+    throw error;
+  }
+};
+
+export const getVendorById = async (vendorId) => {
+  try {
+    const response = await api.get(`/vendors/${vendorId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get vendor by ID error:', error);
+    throw error;
+  }
+};
+
+export const createVendor = async (vendorData) => {
+  try {
+    const response = await api.post('/vendors', vendorData);
+    return response.data;
+  } catch (error) {
+    console.error('Create vendor error:', error);
+    throw error;
+  }
+};
+
+export const updateVendor = async (vendorId, vendorData) => {
+  try {
+    const response = await api.put(`/vendors/${vendorId}`, vendorData);
+    return response.data;
+  } catch (error) {
+    console.error('Update vendor error:', error);
+    throw error;
+  }
+};
+
+export const deleteVendor = async (vendorId) => {
+  try {
+    const response = await api.delete(`/vendors/${vendorId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Delete vendor error:', error);
+    throw error;
+  }
+};
+
+export const searchVendors = async (query) => {
+  try {
+    const response = await api.get('/vendors/search', { params: { query } });
+    return response.data?.data || response.data || [];
+  } catch (error) {
+    console.error('Search vendors error:', error);
+    throw error;
+  }
+};
 
 export default api;
