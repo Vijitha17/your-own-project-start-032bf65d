@@ -9,6 +9,7 @@ const collegeRoutes = require('./routes/collegeRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const vendorRoutes = require('./routes/vendorRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use('/api/colleges', collegeRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/vendors', vendorRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

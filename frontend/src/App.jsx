@@ -21,6 +21,9 @@ import Profile from "./pages/Profile.jsx";
 import AuthRoute from "./components/AuthRoute.jsx";
 import AddDepartmentForm from "./components/users/AddDepartmentForm.jsx";
 import AddCollegeForm from "./components/users/AddCollegeForm.jsx";
+import AddCategoryForm from "./components/stock/AddCategoryForm.jsx";
+import CurrentStock from "./components/stock/CurrentStock";
+import CategoryList from "./components/stock/CategoryList";
 
 const queryClient = new QueryClient();
 
@@ -58,12 +61,17 @@ const App = () => (
 
           {/* Stock Management Routes */}
           <Route path="/stock" element={<AuthRoute><StockManagement /></AuthRoute>}>
-            <Route index element={<Outlet />} />
+            <Route index element={<CurrentStock />} />
+            <Route path="current" element={<CurrentStock />} />
             <Route path="allocated" element={<Outlet />} />
             <Route path="service" element={<Outlet />} />
             <Route path="trashed" element={<Outlet />} />
             <Route path="sold" element={<Outlet />} />
+            <Route path="categories" element={<CategoryList />} />
           </Route>
+
+          {/* Add Category Form Route */}
+          <Route path="/stock/categories/add" element={<AuthRoute><AddCategoryForm /></AuthRoute>} />
 
           {/* Stock Movement Routes */}
           <Route path="/movement" element={<AuthRoute><StockMovement /></AuthRoute>}>

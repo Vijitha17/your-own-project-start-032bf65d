@@ -32,8 +32,8 @@ const Navbar = ({ toggleSidebar, sidebarOpen }) => {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const userData = await getCurrentUser();
-        setUser(userData);
+        const response = await getCurrentUser();
+        setUser(response.user);
       } catch (error) {
         console.error('Error fetching user:', error);
         if (error.response?.status === 401) {

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation, Outlet } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,24 +12,28 @@ import {
   Share2, 
   Wrench,
   Trash2,
-  DollarSign
+  DollarSign,
+  Boxes,
+  ClipboardList,
+  Archive,
+  ShoppingCart,
+  Tag
 } from "lucide-react";
-import StockList from "@/components/stock/StockList";
-import AllocatedStockList from "@/components/stock/AllocatedStockList";
-import ServiceStockList from "@/components/stock/ServiceStockList";
 import AddStockForm from "@/components/stock/AddStockForm";
-import TrashedStockList from "@/components/stock/TrashedStockList";
-import SoldStockList from "@/components/stock/SoldStockList";
+import CurrentStock from "@/components/stock/CurrentStock";
+import CategoryList from "@/components/stock/CategoryList";
 
 const StockManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeForm, setActiveForm] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get the current tab from the URL path
-  const currentTab = location.pathname.split('/').pop() || '';
+  // Extract the current tab from the URL path
+  const path = location.pathname.split('/');
+  const currentTab = path.length > 2 ? path[2] : 'current';
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -47,7 +51,7 @@ const StockManagement = () => {
       <Navbar toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
       
       <div className="flex flex-1">
-        <Sidebar isOpen={sidebarOpen} />
+        <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
         
         <main className={`flex-1 p-6 md:p-8 transition-all duration-300 ${sidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
@@ -56,50 +60,127 @@ const StockManagement = () => {
             </h1>
             
             <div className="flex flex-col md:flex-row w-full md:w-auto space-y-2 md:space-y-0 md:space-x-2">
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input 
+                  type="text" 
+                  placeholder="Search stock..." 
+                  className="pl-8 pr-4 py-2 w-full rounded-md border border-input bg-background"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
               {!activeForm && (
                 <>
-                  <Button onClick={handleAddStock} className="w-full md:w-auto">
-                    <Plus className="mr-2 h-4 w-4" />
+                  <Button onClick={handleAddStock}>
+                    <Plus className="h-4 w-4 mr-2" />
                     Add Stock
                   </Button>
-                  <Button variant="outline" className="w-full md:w-auto">
-                    <Filter className="mr-2 h-4 w-4" />
-                    Filter
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => setFilterOpen(!filterOpen)}
+                  >
+                    <Filter className="h-4 w-4" />
                   </Button>
                 </>
+              )}
+              
+              {activeForm && (
+                <Button variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
               )}
             </div>
           </div>
 
+          {filterOpen && (
+            <div className="mb-6 bg-white p-4 rounded-lg shadow">
+              <h3 className="font-medium mb-3">Filter Options</h3>
+              <div className="grid gap-4 md:grid-cols-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Category</label>
+                  <select className="w-full px-3 py-2 border rounded-md">
+                    <option value="">All Categories</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="furniture">Furniture</option>
+                    <option value="stationery">Stationery</option>
+                    <option value="equipment">Equipment</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Location/Department</label>
+                  <select className="w-full px-3 py-2 border rounded-md">
+                    <option value="">All Locations</option>
+                    <option value="cs">Computer Science</option>
+                    <option value="it">Information Technology</option>
+                    <option value="eee">Electrical Engineering</option>
+                    <option value="admin">Administrative Office</option>
+                  </select>
+                </div>
+                
+                <div className="flex items-end">
+                  <Button className="w-full">Apply Filters</Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeForm === 'add' ? (
-            <AddStockForm onCancel={handleCancel} />
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Add New Stock</h2>
+              <AddStockForm onCancel={handleCancel} />
+            </div>
           ) : (
-            <>
-              <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="">Current Stock</TabsTrigger>
-                  <TabsTrigger value="allocated">Allocated</TabsTrigger>
-                  <TabsTrigger value="service">Service</TabsTrigger>
-                  <TabsTrigger value="trashed">Trashed</TabsTrigger>
-                  <TabsTrigger value="sold">Sold</TabsTrigger>
-                </TabsList>
-                <TabsContent value="">
-                  <StockList />
-                </TabsContent>
-                <TabsContent value="allocated">
-                  <AllocatedStockList />
-                </TabsContent>
-                <TabsContent value="service">
-                  <ServiceStockList />
-                </TabsContent>
-                <TabsContent value="trashed">
-                  <TrashedStockList />
-                </TabsContent>
-                <TabsContent value="sold">
-                  <SoldStockList />
-                </TabsContent>
-              </Tabs>
-            </>
+            <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="current" className="flex items-center">
+                  <Boxes className="h-4 w-4 mr-2" />
+                  Current Stock
+                </TabsTrigger>
+                <TabsTrigger value="allocated" className="flex items-center">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Allocated
+                </TabsTrigger>
+                <TabsTrigger value="service" className="flex items-center">
+                  <Wrench className="h-4 w-4 mr-2" />
+                  Service
+                </TabsTrigger>
+                <TabsTrigger value="trashed" className="flex items-center">
+                  <Archive className="h-4 w-4 mr-2" />
+                  Trashed
+                </TabsTrigger>
+                <TabsTrigger value="sold" className="flex items-center">
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Sold
+                </TabsTrigger>
+                <TabsTrigger value="categories" className="flex items-center">
+                  <Tag className="h-4 w-4 mr-2" />
+                  Categories
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="current" className="space-y-4">
+                <CurrentStock />
+              </TabsContent>
+              <TabsContent value="allocated" className="space-y-4">
+                <div>Allocated Stock Content</div>
+              </TabsContent>
+              <TabsContent value="service" className="space-y-4">
+                <div>Service Stock Content</div>
+              </TabsContent>
+              <TabsContent value="trashed" className="space-y-4">
+                <div>Trashed Stock Content</div>
+              </TabsContent>
+              <TabsContent value="sold" className="space-y-4">
+                <div>Sold Stock Content</div>
+              </TabsContent>
+              <TabsContent value="categories" className="space-y-4">
+                <CategoryList />
+              </TabsContent>
+            </Tabs>
           )}
         </main>
       </div>

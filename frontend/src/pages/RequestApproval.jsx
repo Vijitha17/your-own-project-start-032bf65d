@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
@@ -92,7 +91,7 @@ const RequestApproval = () => {
       <Navbar toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
       
       <div className="flex flex-1">
-        <Sidebar isOpen={sidebarOpen} />
+        <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
         
         <main className={`flex-1 p-6 md:p-8 transition-all duration-300 ${sidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
           {selectedApproval ? (

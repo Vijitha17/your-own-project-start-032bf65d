@@ -30,20 +30,22 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
     <aside
       className={cn(
-        "bg-sidebar fixed inset-y-0 left-0 z-20 flex w-64 flex-col border-r border-sidebar-border transition-all duration-300 ease-in-out",
-        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-20"
+        "bg-sidebar fixed inset-y-0 left-0 z-20 flex flex-col border-r border-sidebar-border",
+        "transition-[transform,width] duration-300 ease-in-out",
+        isOpen ? "w-64 translate-x-0" : "-translate-x-full md:translate-x-0 md:w-20"
       )}
     >
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
         <h2 className={cn(
-          "text-lg font-bold text-sidebar-foreground transition-all",
+          "text-lg font-bold text-sidebar-foreground",
           isOpen ? "block" : "hidden md:block"
         )}>
           {isOpen ? "College IMS" : "IMS"}
         </h2>
         <button
           onClick={toggleSidebar}
-          className="hidden md:flex items-center justify-center h-8 w-8 rounded-full hover:bg-sidebar-accent"
+          className="flex items-center justify-center h-8 w-8 rounded-full hover:bg-sidebar-accent"
+          aria-label="Toggle sidebar"
         >
           {isOpen ? (
             <ChevronLeft className="h-5 w-5 text-sidebar-foreground" />
@@ -60,7 +62,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <button
                 onClick={() => handleMenuClick(item)}
                 className={cn(
-                  "group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium",
+                  "transition-colors duration-200",
                   isActive(item.path)
                     ? "bg-sidebar-primary text-sidebar-primary-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -68,8 +71,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               >
                 {item.icon && (
                   <item.icon className={cn(
-                    "mr-3 h-5 w-5 flex-shrink-0",
-                    isOpen ? "" : "mx-auto"
+                    "h-5 w-5 flex-shrink-0",
+                    isOpen ? "mr-3" : "mx-auto"
                   )} />
                 )}
                 {isOpen && (
