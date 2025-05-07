@@ -22,8 +22,10 @@ import AuthRoute from "./components/AuthRoute.jsx";
 import AddDepartmentForm from "./components/users/AddDepartmentForm.jsx";
 import AddCollegeForm from "./components/users/AddCollegeForm.jsx";
 import AddCategoryForm from "./components/stock/AddCategoryForm.jsx";
+import AddLocationForm from "./components/stock/AddLocationForm.jsx";
 import CurrentStock from "./components/stock/CurrentStock";
 import CategoryList from "./components/stock/CategoryList";
+import LocationList from "./components/stock/LocationList";
 
 const queryClient = new QueryClient();
 
@@ -68,10 +70,14 @@ const App = () => (
             <Route path="trashed" element={<Outlet />} />
             <Route path="sold" element={<Outlet />} />
             <Route path="categories" element={<CategoryList />} />
+            <Route path="locations" element={<LocationList />} />
           </Route>
 
           {/* Add Category Form Route */}
           <Route path="/stock/categories/add" element={<AuthRoute><AddCategoryForm /></AuthRoute>} />
+          
+          {/* Add Location Form Route */}
+          <Route path="/stock/locations/add" element={<AuthRoute><AddLocationForm /></AuthRoute>} />
 
           {/* Stock Movement Routes */}
           <Route path="/movement" element={<AuthRoute><StockMovement /></AuthRoute>}>

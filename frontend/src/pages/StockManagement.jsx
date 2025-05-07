@@ -17,11 +17,13 @@ import {
   ClipboardList,
   Archive,
   ShoppingCart,
-  Tag
+  Tag,
+  MapPin
 } from "lucide-react";
 import AddStockForm from "@/components/stock/AddStockForm";
 import CurrentStock from "@/components/stock/CurrentStock";
 import CategoryList from "@/components/stock/CategoryList";
+import LocationList from "@/components/stock/LocationList";
 
 const StockManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -160,6 +162,10 @@ const StockManagement = () => {
                   <Tag className="h-4 w-4 mr-2" />
                   Categories
                 </TabsTrigger>
+                <TabsTrigger value="locations" className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Locations
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="current" className="space-y-4">
@@ -179,6 +185,9 @@ const StockManagement = () => {
               </TabsContent>
               <TabsContent value="categories" className="space-y-4">
                 <CategoryList />
+              </TabsContent>
+              <TabsContent value="locations" className="space-y-4">
+                <LocationList />
               </TabsContent>
             </Tabs>
           )}

@@ -168,10 +168,75 @@ export const deleteDepartment = async (departmentId) => {
 };
 
 // Location API
-export const getLocations = () => api.get('/locations').then(res => res.data);
-export const createLocation = (data) => api.post('/locations', data).then(res => res.data);
-export const updateLocation = (id, data) => api.put(`/locations/${id}`, data).then(res => res.data);
-export const deleteLocation = (id) => api.delete(`/locations/${id}`).then(res => res.data);
+export const getLocations = async () => {
+  try {
+    const response = await api.get('/locations');
+    return response.data.data;
+  } catch (error) {
+    console.error('Get locations error:', error);
+    throw error;
+  }
+};
+
+export const getLocationById = async (locationId) => {
+  try {
+    const response = await api.get(`/locations/${locationId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Get location error:', error);
+    throw error;
+  }
+};
+
+export const getLocationsByCollege = async (collegeId) => {
+  try {
+    const response = await api.get(`/locations/college/${collegeId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Get locations by college error:', error);
+    throw error;
+  }
+};
+
+export const getLocationsByDepartment = async (departmentId) => {
+  try {
+    const response = await api.get(`/locations/department/${departmentId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Get locations by department error:', error);
+    throw error;
+  }
+};
+
+export const createLocation = async (locationData) => {
+  try {
+    const response = await api.post('/locations', locationData);
+    return response.data;
+  } catch (error) {
+    console.error('Create location error:', error);
+    throw error;
+  }
+};
+
+export const updateLocation = async (locationId, locationData) => {
+  try {
+    const response = await api.put(`/locations/${locationId}`, locationData);
+    return response.data;
+  } catch (error) {
+    console.error('Update location error:', error);
+    throw error;
+  }
+};
+
+export const deleteLocation = async (locationId) => {
+  try {
+    const response = await api.delete(`/locations/${locationId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Delete location error:', error);
+    throw error;
+  }
+};
 
 // Vendor API
 export const getVendors = async () => {

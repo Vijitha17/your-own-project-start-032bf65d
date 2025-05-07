@@ -18,7 +18,6 @@ import UserList from "@/components/users/UserList";
 import UserForm from "@/components/users/UserForm";
 import CollegeList from "@/components/users/CollegeList";
 import DepartmentList from "@/components/users/DepartmentList";
-import LocationList from "@/components/users/LocationList";
 import { getUsers, createUser, updateUser, deleteUser } from "@/lib/api";
 
 const UserManagement = () => {
@@ -214,12 +213,7 @@ const UserManagement = () => {
                 <DepartmentList />
               </TabsContent>
               
-              {/* Only render locations content for Admin */}
-              {isAdmin && (
-                <TabsContent value="locations" className="space-y-4">
-                  <LocationList />
-                </TabsContent>
-              )}
+              
             </Tabs>
           )}
         </main>
