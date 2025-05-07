@@ -1,130 +1,248 @@
 const Location = require('../models/locationModel');
 
-// Create new location
-const createLocation = async (req, res) => {
-    try {
-        const { location, location_name, college_id, department_id, description } = req.body;
-
-        // Check if location already exists
-        const existingLocations = await Location.getAll();
-        const locationExists = existingLocations.some(loc => 
-            loc.location_name.toLowerCase() === location_name.toLowerCase() &&
-            loc.college_id === college_id &&
-            loc.department_id === department_id
-        );
-
-        if (locationExists) {
-            return res.status(400).json({ message: 'Location already exists' });
-        }
-
-        const locationId = await Location.create({
-            location,
-            location_name,
-            college_id,
-            department_id,
-            description
-        });
-        
-        res.status(201).json({ message: 'Location created successfully', locationId });
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-};
-
-// Get all locations
+/**
+ * Get all locations
+ */
 const getAllLocations = async (req, res) => {
     try {
         const locations = await Location.getAll();
-        res.json(locations);
+        res.json({
+            success: true,
+            data: locations
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Get locations error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch locations',
+            error: error.message
+        });
     }
 };
 
-// Get location by ID
+/**
+ * Get a location by ID
+ */
 const getLocationById = async (req, res) => {
     try {
         const { location_id } = req.params;
         const location = await Location.getById(location_id);
         
         if (!location) {
-            return res.status(404).json({ message: 'Location not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Location not found'
+            });
         }
 
-        res.json(location);
+        res.json({
+            success: true,
+            data: location
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Get location by ID error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch location',
+            error: error.message
+        });
     }
 };
 
-// Get locations by college
+/**
+ * Get locations by college
+ */
 const getLocationsByCollege = async (req, res) => {
     try {
         const { college_id } = req.params;
         const locations = await Location.getByCollege(college_id);
-        res.json(locations);
+        
+        res.json({
+            success: true,
+            data: locations
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Get locations by college error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch locations for this college',
+            error: error.message
+        });
     }
 };
 
-// Get locations by department
+/**
+ * Get locations by department
+ */
 const getLocationsByDepartment = async (req, res) => {
     try {
         const { department_id } = req.params;
         const locations = await Location.getByDepartment(department_id);
-        res.json(locations);
+        
+        res.json({
+            success: true,
+            data: locations
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Get locations by department error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch locations for this department',
+            error: error.message
+        });
     }
 };
 
-// Update location
+/**
+ * Create a new location
+ */
+const createLocation = async (req, res) => {
+    try {
+        const { location_id, location_name, college_id, department_id, location_type, description } = req.body;
+
+        // Validate input
+        if (!location_id || !location_name || !college_id || !location_type) {
+            return res.status(400).json({
+                success: false,
+                message: 'Location ID, name, college ID, and location type are required'
+            });
+        }
+
+        // Check if location already exists
+        const existingLocation = await Location.findByName(location_name);
+        if (existingLocation) {
+            return res.status(400).json({
+                success: false,
+                message: 'Location with this name already exists'
+            });
+        }
+
+        // Create location
+        await Location.create({ 
+            location_id, 
+            location_name, 
+            college_id, 
+            department_id, 
+            location_type, 
+            description 
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Location created successfully',
+            location_id
+        });
+    } catch (error) {
+        console.error('Create location error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create location',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Update a location
+ */
 const updateLocation = async (req, res) => {
     try {
         const { location_id } = req.params;
-        const { location, location_name, college_id, department_id, description } = req.body;
+        const { location_name, college_id, department_id, location_type, description } = req.body;
 
-        const updated = await Location.update(location_id, {
-            location,
-            location_name,
-            college_id,
-            department_id,
-            description
-        });
-        
-        if (!updated) {
-            return res.status(404).json({ message: 'Location not found' });
+        // Validate input
+        if (!location_name || !location_type) {
+            return res.status(400).json({
+                success: false,
+                message: 'Location name and type are required'
+            });
         }
 
-        res.json({ message: 'Location updated successfully' });
+        // Check if the location exists
+        const location = await Location.getById(location_id);
+        if (!location) {
+            return res.status(404).json({
+                success: false,
+                message: 'Location not found'
+            });
+        }
+
+        // Update location
+        const updated = await Location.update(location_id, {
+            location_name,
+            college_id: college_id || location.college_id,
+            department_id: department_id || location.department_id,
+            location_type,
+            description: description || location.description
+        });
+
+        if (!updated) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to update location'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Location updated successfully'
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Update location error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update location',
+            error: error.message
+        });
     }
 };
 
-// Delete location
+/**
+ * Delete a location
+ */
 const deleteLocation = async (req, res) => {
     try {
         const { location_id } = req.params;
+        
+        // Check if the location exists
+        const location = await Location.getById(location_id);
+        if (!location) {
+            return res.status(404).json({
+                success: false,
+                message: 'Location not found'
+            });
+        }
+
+        // Delete location
         const deleted = await Location.delete(location_id);
         
         if (!deleted) {
-            return res.status(404).json({ message: 'Location not found' });
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to delete location'
+            });
         }
 
-        res.json({ message: 'Location deleted successfully' });
+        res.json({
+            success: true,
+            message: 'Location deleted successfully'
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Delete location error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete location',
+            error: error.message
+        });
     }
 };
 
 module.exports = {
-    createLocation,
     getAllLocations,
     getLocationById,
     getLocationsByCollege,
     getLocationsByDepartment,
+    createLocation,
     updateLocation,
     deleteLocation
-}; 
+};

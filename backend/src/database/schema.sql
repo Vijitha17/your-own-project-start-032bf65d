@@ -81,3 +81,17 @@ CREATE TABLE Categories (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+CREATE TABLE locations (
+    location_id VARCHAR(50) PRIMARY KEY,
+    location_name VARCHAR(100) NOT NULL,
+    college_id VARCHAR(50) NOT NULL,
+    department_id VARCHAR(50),
+    location_type ENUM('Classroom', 'Staffroom', 'Hod Room', 'Lab', 'Library', 'Office', 'Exam Cell') NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (college_id) REFERENCES colleges(college_id) ON DELETE CASCADE,
+    FOREIGN KEY (department_id) REFERENCES departments(department_id) ON DELETE SET NULL,
+    UNIQUE (location_name, college_id, department_id)
+);
