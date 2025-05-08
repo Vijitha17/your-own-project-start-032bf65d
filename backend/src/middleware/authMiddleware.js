@@ -60,16 +60,10 @@ const authMiddleware = (allowedRoles = []) => {
       req.user = user;
       next();
     } catch (error) {
-      console.error('Authentication error:', error);
-      if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({
-          success: false,
-          message: 'Session expired. Please login again'
-        });
-      }
+      console.error('Auth middleware error:', error);
       res.status(401).json({
         success: false,
-        message: 'Invalid authentication token'
+        message: 'Invalid or expired token'
       });
     }
   };
@@ -77,8 +71,13 @@ const authMiddleware = (allowedRoles = []) => {
 
 const isManagementAdmin = authMiddleware([ROLES.MANAGEMENT_ADMIN]);
 
+const isAuthorizedRole = (allowedRoles) => {
+  return authMiddleware(allowedRoles);
+};
+
 module.exports = {
   authMiddleware,
   isManagementAdmin,
+  isAuthorizedRole,
   ROLES
 };

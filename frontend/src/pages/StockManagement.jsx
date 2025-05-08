@@ -24,6 +24,7 @@ import AddStockForm from "@/components/stock/AddStockForm";
 import CurrentStock from "@/components/stock/CurrentStock";
 import CategoryList from "@/components/stock/CategoryList";
 import LocationList from "@/components/stock/LocationList";
+import { ROLES } from "@/lib/constants";
 
 const StockManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,6 +33,17 @@ const StockManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Get user role from localStorage
+  const userRole = localStorage.getItem('userRole');
+
+  // Check if user has access to locations
+  const hasLocationAccess = [
+    ROLES.MANAGEMENT_ADMIN,
+    ROLES.PRINCIPAL,
+    ROLES.HOD,
+    ROLES.DEPARTMENT_INCHARGE
+  ].includes(userRole);
 
   // Extract the current tab from the URL path
   const path = location.pathname.split('/');
@@ -162,10 +174,12 @@ const StockManagement = () => {
                   <Tag className="h-4 w-4 mr-2" />
                   Categories
                 </TabsTrigger>
-                <TabsTrigger value="locations" className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Locations
-                </TabsTrigger>
+                {hasLocationAccess && (
+                  <TabsTrigger value="locations" className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Locations
+                  </TabsTrigger>
+                )}
               </TabsList>
               
               <TabsContent value="current" className="space-y-4">
@@ -186,9 +200,11 @@ const StockManagement = () => {
               <TabsContent value="categories" className="space-y-4">
                 <CategoryList />
               </TabsContent>
-              <TabsContent value="locations" className="space-y-4">
-                <LocationList />
-              </TabsContent>
+              {hasLocationAccess && (
+                <TabsContent value="locations" className="space-y-4">
+                  <LocationList />
+                </TabsContent>
+              )}
             </Tabs>
           )}
         </main>

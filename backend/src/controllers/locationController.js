@@ -1,11 +1,51 @@
 const Location = require('../models/locationModel');
+const { ROLES } = require('../middleware/authMiddleware');
 
 /**
- * Get all locations
+ * Get all locations with role-based filtering
  */
 const getAllLocations = async (req, res) => {
     try {
-        const locations = await Location.getAll();
+        let locations;
+        const user = req.user;
+
+        // Filter locations based on user role
+        switch (user.role) {
+            case ROLES.MANAGEMENT_ADMIN:
+                // Management Admin can see all locations
+                locations = await Location.getAll();
+                break;
+
+            case ROLES.PRINCIPAL:
+                // Principal can only see locations in their college
+                if (!user.college_id) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Principal must be assigned to a college'
+                    });
+                }
+                locations = await Location.getByCollege(user.college_id);
+                break;
+
+            case ROLES.HOD:
+            case ROLES.DEPARTMENT_INCHARGE:
+                // HOD and Department Incharge can only see locations in their department
+                if (!user.department_id) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'User must be assigned to a department'
+                    });
+                }
+                locations = await Location.getByDepartment(user.department_id);
+                break;
+
+            default:
+                return res.status(403).json({
+                    success: false,
+                    message: 'Unauthorized access'
+                });
+        }
+
         res.json({
             success: true,
             data: locations

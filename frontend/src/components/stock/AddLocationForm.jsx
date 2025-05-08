@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createLocation, getColleges, getDepartments } from "@/lib/api";
+import { ROLES } from "@/lib/constants";
 
 const LOCATION_TYPES = [
   'Classroom',
@@ -43,6 +44,24 @@ const AddLocationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // Get user role from localStorage
+  const userRole = localStorage.getItem('userRole');
+
+  // Check if user is management admin
+  const isManagementAdmin = userRole === ROLES.MANAGEMENT_ADMIN;
+
+  // Redirect if not management admin
+  useEffect(() => {
+    if (!isManagementAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access this page",
+        variant: "destructive",
+      });
+      navigate("/stock/locations");
+    }
+  }, [isManagementAdmin, navigate, toast]);
+
   // Determine if department is required based on location type
   const isDepartmentRequired = DEPARTMENT_REQUIRED_TYPES.includes(formData.location_type);
 
