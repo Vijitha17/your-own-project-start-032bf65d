@@ -10,13 +10,14 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  BarChart, 
+  BarChart as BarChartIcon, 
   Calendar, 
   Package, 
   ShoppingCart, 
   Users, 
   AlertTriangle 
 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 
 const DashboardCard = ({ title, value, icon: Icon, description, className }) => (
   <Card>
@@ -63,6 +64,36 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   
+  // Sample data for charts
+  const expenditureData = [
+    { name: 'Jan', value: 4000 },
+    { name: 'Feb', value: 3000 },
+    { name: 'Mar', value: 5000 },
+    { name: 'Apr', value: 2780 },
+    { name: 'May', value: 1890 },
+    { name: 'Jun', value: 2390 },
+  ];
+
+  const analyticsData = [
+    { name: 'Mon', requests: 20, approvals: 15, purchases: 8 },
+    { name: 'Tue', requests: 26, approvals: 19, purchases: 12 },
+    { name: 'Wed', requests: 15, approvals: 10, purchases: 5 },
+    { name: 'Thu', requests: 32, approvals: 25, purchases: 18 },
+    { name: 'Fri', requests: 18, approvals: 12, purchases: 6 },
+    { name: 'Sat', requests: 8, approvals: 5, purchases: 2 },
+    { name: 'Sun', requests: 3, approvals: 2, purchases: 1 },
+  ];
+
+  const departmentSpendingData = [
+    { name: 'Computer Science', value: 35 },
+    { name: 'Information Technology', value: 25 },
+    { name: 'Mechanical', value: 20 },
+    { name: 'Bio Medical', value: 15 },
+    { name: 'Agricultural', value: 5 },
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (!user) {
@@ -132,11 +163,25 @@ const Dashboard = () => {
                     <CardTitle>Expenditure Overview</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-80 flex items-center justify-center border rounded-md">
-                      <div className="text-center space-y-2">
-                        <BarChart className="h-10 w-10 mx-auto text-muted-foreground" />
-                        <p className="text-muted-foreground">Expenditure chart will appear here</p>
-                      </div>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={expenditureData}
+                          margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="value" fill="#8884d8" name="Expenditure ($)" />
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
                   </CardContent>
                 </Card>
@@ -177,19 +222,67 @@ const Dashboard = () => {
             </TabsContent>
             
             <TabsContent value="analytics">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Analytics Dashboard</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[400px] flex items-center justify-center">
-                    <div className="text-center space-y-2">
-                      <BarChart className="h-10 w-10 mx-auto text-muted-foreground" />
-                      <p className="text-muted-foreground">Detailed analytics will appear here</p>
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Weekly Activity</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={analyticsData}
+                          margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Line type="monotone" dataKey="requests" stroke="#8884d8" activeDot={{ r: 8 }} />
+                          <Line type="monotone" dataKey="approvals" stroke="#82ca9d" />
+                          <Line type="monotone" dataKey="purchases" stroke="#ffc658" />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Department Spending</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={departmentSpendingData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                            nameKey="name"
+                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {departmentSpendingData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
             
             <TabsContent value="pending">

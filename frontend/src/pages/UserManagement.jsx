@@ -183,13 +183,7 @@ const UserManagement = () => {
                   Departments
                 </TabsTrigger>
                 
-                {/* Only show Locations tab for Admin */}
-                {isAdmin && (
-                  <TabsTrigger value="locations" className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Locations
-                  </TabsTrigger>
-                )}
+                
               </TabsList>
               
               <TabsContent value="users" className="space-y-4">
