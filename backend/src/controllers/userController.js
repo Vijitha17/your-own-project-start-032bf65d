@@ -24,6 +24,13 @@ const login = async (req, res) => {
       }
   
       // Verify password
+      if (!user.password) {
+        console.error('User password is missing for user:', user);
+        return res.status(500).json({
+          success: false,
+          message: 'User password is missing in database'
+        });
+      }
       const isMatch = await User.verifyPassword(password, user.password);
       if (!isMatch) {
         return res.status(401).json({
@@ -55,6 +62,7 @@ const login = async (req, res) => {
   
     } catch (error) {
       console.error('Login error:', error);
+      console.error(error.stack);
       res.status(500).json({
         success: false,
         message: 'Internal server error during authentication'
@@ -151,13 +159,15 @@ const getAllUsers = async (req, res) => {
                 });
             }
             users = await User.getUsersByCollege(req.user.college_id);
-        } else if (req.user.role === ROLES.MANAGEMENT_ADMIN) {
+        } else if (req.user.role === ROLES.MANAGEMENT_ADMIN || req.user.role === ROLES.MANAGEMENT) {
             users = await User.getAllUsers();
         } else {
             return res.status(403).json({ 
                 message: 'Unauthorized access' 
             });
         }
+
+        console.log('Users fetched:', users.map(u => ({ user_id: u.user_id, role: u.role })));
 
         res.json(users);
     } catch (error) {

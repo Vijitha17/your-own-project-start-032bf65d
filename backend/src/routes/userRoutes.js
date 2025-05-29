@@ -45,7 +45,7 @@ router.put('/users/:user_id',
 );
 
 router.get('/users', 
-  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.PRINCIPAL]), 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.PRINCIPAL, ROLES.MANAGEMENT]), 
   getAllUsers
 );
 

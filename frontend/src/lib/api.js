@@ -340,4 +340,54 @@ export const deleteCategory = async (id) => {
   }
 };
 
+// Purchase Request API
+export const getPurchaseRequests = async () => {
+  try {
+    const response = await api.get('/purchase-requests');
+    console.log('Raw API Response:', response); // Debug log
+    
+    // Handle different response formats
+    let purchaseRequests = [];
+    if (response.data?.data) {
+      purchaseRequests = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      purchaseRequests = response.data;
+    } else if (response.data?.purchase_requests) {
+      purchaseRequests = response.data.purchase_requests;
+    }
+    
+    // Ensure each purchase request has an items array
+    purchaseRequests = purchaseRequests.map(request => ({
+      ...request,
+      items: request.items || []
+    }));
+    
+    console.log('Processed Purchase Requests:', purchaseRequests); // Debug log
+    return purchaseRequests;
+  } catch (error) {
+    console.error('Get purchase requests error:', error);
+    throw error;
+  }
+};
+
+export const getPurchaseRequestById = async (purchaseRequestId) => {
+  try {
+    const response = await api.get(`/purchase-requests/${purchaseRequestId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get purchase request details error:', error);
+    throw error;
+  }
+};
+
+export const updatePurchaseRequestStatus = async (purchaseRequestId, status) => {
+  try {
+    const response = await api.put(`/purchase-requests/${purchaseRequestId}/status`, { status });
+    return response.data;
+  } catch (error) {
+    console.error('Update purchase request status error:', error);
+    throw error;
+  }
+};
+
 export default api;

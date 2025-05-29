@@ -11,7 +11,9 @@
     "create-admin": "node scripts/create-admin.js"
   },
   "dependencies": {
+    "@prisma/client": "^6.8.2",
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.21.2",
@@ -21,6 +23,8 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "mysql2": "^3.6.5",
+    "pg": "^8.16.0",
+    "prisma": "^6.8.2",
     "rimraf": "^6.0.1",
     "sequelize": "^6.37.7",
     "uuid": "^11.1.0"

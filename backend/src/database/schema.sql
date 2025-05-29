@@ -97,37 +97,38 @@ CREATE TABLE locations (
 );
 
 
+-- PurchaseRequests table
 CREATE TABLE PurchaseRequests (
     purchase_request_id INT AUTO_INCREMENT PRIMARY KEY,
-    request_number VARCHAR(20) NOT NULL UNIQUE,  -- e.g., "PR-2023-001"
-    vendor_id VARCHAR(50),
     requested_by VARCHAR(50) NOT NULL,
     approve_by VARCHAR(50),
     request_date DATETIME NOT NULL,
-    approval_status ENUM('Draft', 'Pending', 'Approved', 'Rejected', 'Partially Approved') DEFAULT 'Draft',
+    approval_status ENUM('Pending', 'Approved', 'Rejected', 'Partially Approved') DEFAULT 'Pending',
     approved_date DATETIME,
     total_estimated_cost DECIMAL(12,2) DEFAULT 0.00,
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id),
     FOREIGN KEY (requested_by) REFERENCES users(user_id),
     FOREIGN KEY (approve_by) REFERENCES users(user_id)
 );
 
+-- PurchaseRequestItems table
 CREATE TABLE PurchaseRequestItems (
     purchaserequest_item_id INT AUTO_INCREMENT PRIMARY KEY,
     purchase_request_id INT NOT NULL,
     item_name VARCHAR(100) NOT NULL,
     category_id VARCHAR(10) NOT NULL,
-    quantity INT NOT NULL CHECK (quantity > 0),
-    estimated_unit_cost DECIMAL(10,2) NOT NULL CHECK (estimated_unit_cost >= 0),
+    quantity INT NOT NULL,
+    estimated_unit_cost DECIMAL(10,2) NOT NULL,
     estimated_total_cost DECIMAL(10,2) GENERATED ALWAYS AS (quantity * estimated_unit_cost) STORED,
     specifications TEXT,
-    item_status ENUM('Pending', 'Approved', 'Rejected', 'Purchased', 'Partially Approved') DEFAULT 'Pending',
+    item_status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (purchase_request_id) REFERENCES PurchaseRequests(purchase_request_id) ON DELETE CASCADE,
+    vendor_id VARCHAR(50),
+    FOREIGN KEY (purchase_request_id) REFERENCES PurchaseRequests(purchase_request_id),
     FOREIGN KEY (category_id) REFERENCES Categories(category_id),
-    INDEX (purchase_request_id)  -- Improves join performance
+    FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id),
+    INDEX (purchase_request_id)
 );
