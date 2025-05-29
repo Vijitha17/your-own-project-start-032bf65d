@@ -74,8 +74,9 @@ const getPurchaseRequestById = async (req, res) => {
             });
         }
 
-        // Check authorization
+        // Check authorization - allow Management_Admin and Management roles to view any request
         if (req.user.role !== ROLES.MANAGEMENT_ADMIN && 
+            req.user.role !== 'Management' && 
             request.requested_by !== req.user.user_id) {
             return res.status(403).json({ 
                 success: false,

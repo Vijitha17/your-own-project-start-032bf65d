@@ -123,7 +123,6 @@ const ViewPurchaseRequestDetails = ({ request, isOpen, onClose }) => {
                         <TableHead>Total Cost</TableHead>
                         <TableHead>Vendor</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -137,28 +136,6 @@ const ViewPurchaseRequestDetails = ({ request, isOpen, onClose }) => {
                           <TableCell>₹{(item.quantity * item.estimated_unit_cost)?.toLocaleString()}</TableCell>
                           <TableCell>{item.vendor_name}</TableCell>
                           <TableCell>{getApprovalStatusBadge(item.item_status || 'Pending')}</TableCell>
-                          <TableCell className="text-right">
-                            {item.item_status === 'Pending' && (
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleItemStatusUpdate(item.purchaserequest_item_id, 'Approved')}
-                                  className="text-green-600 hover:text-green-700"
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleItemStatusUpdate(item.purchaserequest_item_id, 'Rejected')}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <XCircle className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            )}
-                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
