@@ -53,7 +53,7 @@ api.interceptors.response.use(
 // Auth API
 export const login = async (credentials) => {
   try {
-    const response = await api.post('/users/login', credentials);
+    const response = await api.post('/login', credentials);
     localStorage.setItem('token', response.data.token);
     return response.data;
   } catch (error) {
@@ -64,7 +64,7 @@ export const login = async (credentials) => {
 
 export const logout = async () => {
   try {
-    await api.post('/users/logout');
+    await api.post('/logout');
     localStorage.removeItem('token');
   } catch (error) {
     console.error('Logout error:', error);
@@ -74,7 +74,7 @@ export const logout = async () => {
 
 export const getCurrentUser = async () => {
   try {
-    const response = await api.get('/users/me');
+    const response = await api.get('/me');
     return response.data;
   } catch (error) {
     console.error('Get current user error:', error);
@@ -83,9 +83,9 @@ export const getCurrentUser = async () => {
 };
 
 // Profile API
-export const getProfile = () => api.get('/users/profile').then(res => res.data);
-export const updateProfile = (data) => api.put('/users/profile', data).then(res => res.data);
-export const changePassword = (data) => api.put('/users/profile/password', data).then(res => res.data);
+export const getProfile = () => api.get('/profile').then(res => res.data);
+export const updateProfile = (data) => api.put('/profile', data).then(res => res.data);
+export const changePassword = (data) => api.put('/profile/password', data).then(res => res.data);
 
 // User Management API
 export const getUsers = () => api.get('/users').then(res => res.data);
