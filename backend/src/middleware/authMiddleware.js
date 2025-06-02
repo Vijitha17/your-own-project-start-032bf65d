@@ -15,6 +15,7 @@ const authMiddleware = (allowedRoles = []) => {
       const token = req.header('Authorization')?.replace('Bearer ', '');
       
       if (!token) {
+        console.log('AuthMiddleware: No token provided');
         return res.status(401).json({
           success: false,
           message: 'Authentication token required'
@@ -22,6 +23,7 @@ const authMiddleware = (allowedRoles = []) => {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('AuthMiddleware: Decoded token:', decoded);
       
       const [users] = await pool.query(
         `SELECT u.*, c.college_name, d.department_name 
@@ -33,6 +35,7 @@ const authMiddleware = (allowedRoles = []) => {
       );
 
       if (!users.length) {
+        console.log('AuthMiddleware: User not found for user_id:', decoded.user_id);
         return res.status(401).json({
           success: false,
           message: 'User not found'
@@ -40,9 +43,11 @@ const authMiddleware = (allowedRoles = []) => {
       }
 
       const user = users[0];
+      console.log('AuthMiddleware: Authenticated user:', user);
 
       // Check if user is active
       if (!user.is_active) {
+        console.log('AuthMiddleware: User account inactive:', user.user_id);
         return res.status(403).json({
           success: false,
           message: 'User account is inactive'
@@ -51,6 +56,7 @@ const authMiddleware = (allowedRoles = []) => {
 
       // Check role authorization
       if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+        console.log('AuthMiddleware: Insufficient permissions for user:', user.user_id, 'Required roles:', allowedRoles);
         return res.status(403).json({
           success: false,
           message: `Insufficient permissions. Required roles: ${allowedRoles.join(', ')}`

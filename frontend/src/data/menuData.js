@@ -22,11 +22,6 @@ export const menuByRole = {
       icon: LayoutDashboard
     },
     {
-      title: "Requirement",
-      path: "/requirement/current",
-      icon: PackageOpen
-    },
-    {
       title: "Stock Management",
       path: "/stock",
       icon: Box
@@ -52,11 +47,6 @@ export const menuByRole = {
       icon: Users
     },
     {
-      title: "Expenditure",
-      path: "/expenditure/add",
-      icon: DollarSign
-    },
-    {
       title: "Request & Approval",
       path: "/request/history",
       icon: History
@@ -73,21 +63,6 @@ export const menuByRole = {
       title: "Dashboard",
       path: "/dashboard",
       icon: LayoutDashboard
-    },
-    {
-      title: "Requirement",
-      path: "/requirement/current",
-      icon: PackageOpen,
-      submenu: [
-        {
-          title: "Current Requirement",
-          path: "/requirement/current"
-        },
-        {
-          title: "Requirement History",
-          path: "/requirement/history"
-        }
-      ]
     },
     {
       title: "Stock Management",
@@ -108,7 +83,6 @@ export const menuByRole = {
         }
       ]
     },
-   
     {
       title: "Purchase",
       path: "/purchase/approve",
@@ -128,22 +102,6 @@ export const menuByRole = {
         }
       ]
     },
-    
-    {
-      title: "Expenditure",
-      path: "/expenditure/purchase",
-      icon: DollarSign,
-      submenu: [
-        {
-          title: "Purchase Expenditure",
-          path: "/expenditure/purchase"
-        },
-        {
-          title: "Service Expenditure",
-          path: "/expenditure/service"
-        }
-      ]
-    },
     {
       title: "Reports",
       path: "/reports",
@@ -156,11 +114,6 @@ export const menuByRole = {
       title: "Dashboard",
       path: "/dashboard",
       icon: LayoutDashboard
-    },
-    {
-      title: "Requirement",
-      path: "/requirement/create",
-      icon: PackageOpen
     },
     {
       title: "Stock Management",
@@ -196,11 +149,6 @@ export const menuByRole = {
       icon: LayoutDashboard
     },
     {
-      title: "Requirement",
-      path: "/requirement/create",
-      icon: PackageOpen
-    },
-    {
       title: "Stock Management",
       path: "/stock/allocated",
       icon: Box
@@ -210,7 +158,6 @@ export const menuByRole = {
       path: "/movement/request-status",
       icon: ArrowDown,
     },
-    
     {
       title: "Request & Approval",
       path: "/request/create",
@@ -230,11 +177,6 @@ export const menuByRole = {
       icon: LayoutDashboard
     },
     {
-      title: "Requirement",
-      path: "/requirement/create",
-      icon: PackageOpen
-    },
-    {
       title: "Stock Management",
       path: "/stock/allocated",
       icon: Box
@@ -244,7 +186,6 @@ export const menuByRole = {
       path: "/movement/request-status",
       icon: ArrowDown,
     },
-    
     {
       title: "Request",
       path: "/request/create",

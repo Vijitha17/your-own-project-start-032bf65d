@@ -11,7 +11,8 @@ const {
   getAllColleges,
   getDepartmentsByCollege,
   logout,
-  getProfile
+  getProfile,
+  getUsersByRole
 } = require('../controllers/userController');
 const { authMiddleware, ROLES } = require('../middleware/authMiddleware');
 
@@ -42,6 +43,12 @@ router.post('/users',
 router.put('/users/:user_id', 
   authMiddleware([ROLES.MANAGEMENT_ADMIN]), 
   updateUser
+);
+
+// Get users by role - This needs to come before /users/:user_id
+router.get('/users/role/:role', 
+  authMiddleware(), // Allow all authenticated users to fetch approvers
+  getUsersByRole
 );
 
 router.get('/users', 

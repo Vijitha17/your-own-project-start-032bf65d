@@ -11,12 +11,13 @@ const locationRoutes = require('./routes/locationRoutes');
 const vendorRoutes = require('./routes/vendorRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const purchaseRequestRoutes = require('./routes/purchaseRequestRoutes');
+const purchaseOrderRoutes = require('./routes/purchaseOrderRoutes');
 
 const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:8080', 'http://localhost:5173', 'http://127.0.0.1:8080', 'http://127.0.0.1:5173'],
+  origin: ['http://localhost:8080', 'http://localhost:8081', 'http://localhost:5173', 'http://127.0.0.1:8080', 'http://127.0.0.1:8081', 'http://127.0.0.1:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -57,13 +58,14 @@ pool.getConnection()
   });
 
 // Routes
-app.use('/api/auth', userRoutes);
+app.use('/api', userRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/purchase-requests', purchaseRequestRoutes);
+app.use('/api/purchase-orders', purchaseOrderRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

@@ -175,6 +175,28 @@ class User {
         );
         return rows;
     }
+
+    static async getUsersByRole(role) {
+        const [rows] = await pool.query(`
+            SELECT 
+                u.user_id,
+                u.email,
+                u.role,
+                u.first_name,
+                u.last_name,
+                u.is_active,
+                u.created_at,
+                u.updated_at,
+                c.college_name,
+                d.department_name
+            FROM users u
+            LEFT JOIN colleges c ON u.college_id = c.college_id
+            LEFT JOIN departments d ON u.department_id = d.department_id
+            WHERE u.role = ? AND u.is_active = 1
+            ORDER BY u.first_name, u.last_name
+        `, [role]);
+        return rows;
+    }
 }
 
 module.exports = User;

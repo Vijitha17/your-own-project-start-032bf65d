@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,27 +6,34 @@ import { Button } from "@/components/ui/button";
 import { 
   ShoppingCart, 
   FileText, 
-  Package, 
   ListOrdered,
   Plus,
   Search
 } from "lucide-react";
 import PurchaseRequestList from "@/components/purchase/PurchaseRequestList";
 import PurchaseOrderList from "@/components/purchase/PurchaseOrderList";
-import PurchaseItemList from "@/components/purchase/PurchaseItemList";
 import PurchaseOrderForm from "@/components/purchase/PurchaseOrderForm";
-import PurchaseItemForm from "@/components/purchase/PurchaseItemForm";
 import CreatePurchaseRequest from "@/components/purchase/CreatePurchaseRequest";
 import { useNavigate } from "react-router-dom";
 
 const PurchaseManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-  const [isCreatingItem, setIsCreatingItem] = useState(false);
   const [isCreatingRequest, setIsCreatingRequest] = useState(false);
   const [activeTab, setActiveTab] = useState("orders");
+  const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
   
+  useEffect(() => {
+    // Get user role from localStorage
+    const role = localStorage.getItem('userRole');
+    setUserRole(role);
+    // Set default tab based on role
+    if (role === 'Management') {
+      setActiveTab('requests');
+    }
+  }, []);
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -41,14 +48,6 @@ const PurchaseManagement = () => {
 
   const handleCancelOrder = () => {
     setIsCreatingOrder(false);
-  };
-
-  const handleCreatePurchaseItem = () => {
-    setIsCreatingItem(true);
-  };
-
-  const handleCancelItem = () => {
-    setIsCreatingItem(false);
   };
 
   const handleCancelRequest = () => {
@@ -81,19 +80,13 @@ const PurchaseManagement = () => {
               </div>
               
               {/* Conditional buttons based on active tab and creation state */}
-              {!isCreatingOrder && !isCreatingItem && !isCreatingRequest && activeTab === "orders" && (
+              {!isCreatingOrder && !isCreatingRequest && activeTab === "orders" && userRole !== 'Management' && (
                 <Button onClick={handleCreatePurchaseOrder}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Purchase Order
                 </Button>
               )}
-              {!isCreatingOrder && !isCreatingItem && !isCreatingRequest && activeTab === "items" && (
-                <Button onClick={handleCreatePurchaseItem}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Purchase Item
-                </Button>
-              )}
-              {!isCreatingOrder && !isCreatingItem && !isCreatingRequest && activeTab === "requests" && (
+              {!isCreatingOrder && !isCreatingRequest && activeTab === "requests" && userRole !== 'Management' && (
                 <Button onClick={handleCreatePurchaseRequest}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Purchase Request
@@ -103,11 +96,6 @@ const PurchaseManagement = () => {
               {/* Cancel buttons for different creation modes */}
               {isCreatingOrder && (
                 <Button variant="outline" onClick={handleCancelOrder}>
-                  Cancel
-                </Button>
-              )}
-              {isCreatingItem && (
-                <Button variant="outline" onClick={handleCancelItem}>
                   Cancel
                 </Button>
               )}
@@ -125,40 +113,31 @@ const PurchaseManagement = () => {
               <h2 className="text-xl font-semibold mb-4">Create Purchase Order</h2>
               <PurchaseOrderForm onCancel={handleCancelOrder} />
             </div>
-          ) : isCreatingItem ? (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Add Purchase Item</h2>
-              <PurchaseItemForm onCancel={handleCancelItem} />
-            </div>
           ) : isCreatingRequest ? (
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold mb-4">Create Purchase Request</h2>
               <CreatePurchaseRequest onCancel={handleCancelRequest} />
             </div>
           ) : (
-            <Tabs defaultValue="orders" className="space-y-4" onValueChange={handleTabChange}>
+            <Tabs defaultValue={userRole === 'Management' ? "requests" : "orders"} className="space-y-4" onValueChange={handleTabChange}>
               <TabsList>
-                <TabsTrigger value="orders" className="flex items-center">
-                  <ListOrdered className="h-4 w-4 mr-2" />
-                  Purchase Orders
-                </TabsTrigger>
-                <TabsTrigger value="items" className="flex items-center">
-                  <Package className="h-4 w-4 mr-2" />
-                  Purchase Items
-                </TabsTrigger>
+                {userRole !== 'Management' && (
+                  <TabsTrigger value="orders" className="flex items-center">
+                    <ListOrdered className="h-4 w-4 mr-2" />
+                    Purchase Orders
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="requests" className="flex items-center">
                   <FileText className="h-4 w-4 mr-2" />
                   Purchase Requests
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="orders" className="space-y-4">
-                <PurchaseOrderList />
-              </TabsContent>
-              
-              <TabsContent value="items" className="space-y-4">
-                <PurchaseItemList />
-              </TabsContent>
+              {userRole !== 'Management' && (
+                <TabsContent value="orders" className="space-y-4">
+                  <PurchaseOrderList />
+                </TabsContent>
+              )}
               
               <TabsContent value="requests" className="space-y-4">
                 <PurchaseRequestList />

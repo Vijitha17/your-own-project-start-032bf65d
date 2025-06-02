@@ -15,7 +15,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import ApprovalDetail from "@/components/approval/ApprovalDetail";
-import ApprovalForm from "@/components/approval/ApprovalForm";
+import CreateRequestForm from "@/components/request/CreateRequestForm";
 
 const RequestApproval = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -64,25 +64,16 @@ const RequestApproval = () => {
     setSidebarOpen(!sidebarOpen);
   };
   
-  const handleApprove = (requestId) => {
-    // In a real app, you would update API
-    setRequests(requests.map(req => 
-      req.id === requestId ? {...req, status: "approved"} : req
-    ));
-    
-    if (selectedApproval && selectedApproval.id === requestId) {
-      setSelectedApproval({...selectedApproval, status: "approved"});
-    }
-  };
-  
-  const handleReject = (requestId) => {
-    // In a real app, you would update API
-    setRequests(requests.map(req => 
-      req.id === requestId ? {...req, status: "rejected"} : req
-    ));
-    
-    if (selectedApproval && selectedApproval.id === requestId) {
-      setSelectedApproval({...selectedApproval, status: "rejected"});
+  const getStatusBadge = (status) => {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return <Badge className="bg-green-500">Approved</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-500">Rejected</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-500">Pending</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
     }
   };
   
@@ -91,153 +82,156 @@ const RequestApproval = () => {
       <Navbar toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
       
       <div className="flex flex-1">
-        <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+        <Sidebar isOpen={sidebarOpen} />
         
         <main className={`flex-1 p-6 md:p-8 transition-all duration-300 ${sidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
-          {selectedApproval ? (
-            <ApprovalDetail 
-              approval={selectedApproval} 
-              onBack={() => setSelectedApproval(null)}
-              onApprove={() => handleApprove(selectedApproval.id)}
-              onReject={() => handleReject(selectedApproval.id)}
-            />
-          ) : (
-            <>
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold mb-4 md:mb-0">Requests & Approvals</h1>
-                
-                <div className="flex flex-col md:flex-row w-full md:w-auto space-y-2 md:space-y-0 md:space-x-2">
-                  {!isCreatingRequest && (
-                    <>
-                      <div className="relative w-full md:w-64">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <input 
-                          type="text" 
-                          placeholder="Search requests..." 
-                          className="pl-8 pr-4 py-2 w-full rounded-md border border-input bg-background"
-                        />
-                      </div>
-                      
-                      <Button onClick={() => setIsCreatingRequest(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        New Request
-                      </Button>
-                    </>
-                  )}
-                  
-                  {isCreatingRequest && (
-                    <Button variant="outline" onClick={() => setIsCreatingRequest(false)}>
-                      Cancel
-                    </Button>
-                  )}
-                </div>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold mb-4 md:mb-0">Requests & Approval</h1>
+            
+            <div className="flex flex-col md:flex-row w-full md:w-auto space-y-2 md:space-y-0 md:space-x-2">
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input 
+                  type="text" 
+                  placeholder="Search requests..." 
+                  className="pl-8 pr-4 py-2 w-full rounded-md border border-input bg-background"
+                />
               </div>
               
-              {isCreatingRequest ? (
-                <ApprovalForm onCancel={() => setIsCreatingRequest(false)} />
-              ) : (
-                <Tabs defaultValue="approvals" className="space-y-4">
-                  <TabsList>
-                    <TabsTrigger value="requests" className="flex items-center">
-                      <ClipboardList className="h-4 w-4 mr-2" />
-                      Requests
-                    </TabsTrigger>
-                    <TabsTrigger value="approvals" className="flex items-center">
-                      <History className="h-4 w-4 mr-2" />
-                      Approvals
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="requests" className="space-y-4">
-                    <div className="bg-white rounded-lg shadow">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Department</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Requested By</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {requests.filter(req => req.status === "pending").map((req) => (
-                            <TableRow key={req.id}>
-                              <TableCell className="font-medium">{req.id}</TableCell>
-                              <TableCell>{req.type}</TableCell>
-                              <TableCell>{req.department}</TableCell>
-                              <TableCell>{req.description}</TableCell>
-                              <TableCell>{req.requestedBy}</TableCell>
-                              <TableCell>{req.date}</TableCell>
-                              <TableCell>
-                                <Badge variant={req.status === "approved" ? "success" : "warning"}>
-                                  {req.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="space-x-2">
-                                <Button variant="ghost" size="icon" onClick={() => setSelectedApproval(req)}>
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="text-green-500" onClick={() => handleApprove(req.id)}>
-                                  <CheckCircle className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleReject(req.id)}>
-                                  <XCircle className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="approvals" className="space-y-4">
-                    <div className="bg-white rounded-lg shadow">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Department</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Submitted By</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {requests.filter(req => req.status !== "pending").map((req) => (
-                            <TableRow key={req.id}>
-                              <TableCell className="font-medium">{req.id}</TableCell>
-                              <TableCell>{req.type}</TableCell>
-                              <TableCell>{req.department}</TableCell>
-                              <TableCell>{req.description}</TableCell>
-                              <TableCell>{req.requestedBy}</TableCell>
-                              <TableCell>{req.date}</TableCell>
-                              <TableCell>
-                                <Badge variant={req.status === "approved" ? "success" : "destructive"}>
-                                  {req.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="space-x-2">
-                                <Button variant="ghost" size="icon" onClick={() => setSelectedApproval(req)}>
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+              {!isCreatingRequest && (
+                <Button onClick={() => setIsCreatingRequest(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Request
+                </Button>
               )}
-            </>
+            </div>
+          </div>
+          
+          {isCreatingRequest ? (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Create New Request</h2>
+              <CreateRequestForm onCancel={() => setIsCreatingRequest(false)} />
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <Tabs defaultValue="pending" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="pending" className="flex items-center">
+                    <ClipboardList className="h-4 w-4 mr-2" />
+                    Pending Requests
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="flex items-center">
+                    <History className="h-4 w-4 mr-2" />
+                    Request History
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="pending">
+                  <div className="bg-white rounded-lg shadow overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Request ID</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Department</TableHead>
+                          <TableHead>Requested By</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {requests.map((request) => (
+                          <TableRow key={request.id}>
+                            <TableCell>{request.id}</TableCell>
+                            <TableCell>{request.type}</TableCell>
+                            <TableCell>{request.department}</TableCell>
+                            <TableCell>{request.requestedBy}</TableCell>
+                            <TableCell>{request.date}</TableCell>
+                            <TableCell>{getStatusBadge(request.status)}</TableCell>
+                            <TableCell>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedApproval(request)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                {request.status === 'pending' && (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-green-600 hover:text-green-700"
+                                    >
+                                      <CheckCircle className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      <XCircle className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="history">
+                  <div className="bg-white rounded-lg shadow overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Request ID</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Department</TableHead>
+                          <TableHead>Requested By</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {requests.map((request) => (
+                          <TableRow key={request.id}>
+                            <TableCell>{request.id}</TableCell>
+                            <TableCell>{request.type}</TableCell>
+                            <TableCell>{request.department}</TableCell>
+                            <TableCell>{request.requestedBy}</TableCell>
+                            <TableCell>{request.date}</TableCell>
+                            <TableCell>{getStatusBadge(request.status)}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedApproval(request)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+          
+          {selectedApproval && (
+            <ApprovalDetail
+              request={selectedApproval}
+              onClose={() => setSelectedApproval(null)}
+            />
           )}
         </main>
       </div>

@@ -132,3 +132,89 @@ CREATE TABLE PurchaseRequestItems (
     FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id),
     INDEX (purchase_request_id)
 );
+
+
+-- PurchaseOrders table
+CREATE TABLE PurchaseOrders (
+    purchase_order_id VARCHAR(20) PRIMARY KEY,
+    purchase_request_id INT NOT NULL,
+    order_date DATETIME NOT NULL,
+    vendor_id VARCHAR(50) NOT NULL,
+    ordered_by VARCHAR(50) NOT NULL,
+    approved_by VARCHAR(50),
+    total_amount DECIMAL(12,2) NOT NULL,
+    paid_amount DECIMAL(12,2) DEFAULT 0.00,
+    balance_amount DECIMAL(12,2) GENERATED ALWAYS AS (ROUND(grand_total - paid_amount, 2)) STORED,
+    tax_amount DECIMAL(12,2) DEFAULT 0.00,
+    shipping_amount DECIMAL(12,2) DEFAULT 0.00,
+    discount_amount DECIMAL(12,2) DEFAULT 0.00,
+    grand_total DECIMAL(12,2) GENERATED ALWAYS AS (ROUND(total_amount + tax_amount + shipping_amount - discount_amount, 2)) STORED,
+    payment_status ENUM('Unpaid', 'Partially Paid', 'Paid', 'Refunded') DEFAULT 'Unpaid',
+    payment_reference VARCHAR(100) COMMENT 'Bill number/Transaction ID/Payment reference',
+    bill_copy_path VARCHAR(255) COMMENT 'Path to uploaded bill copy/image',
+    order_status ENUM('Placed', 'Delivered', 'Cancelled', 'Received', 'Returned') DEFAULT 'Placed',
+    return_reason TEXT,
+    return_date DATE,
+    expected_receive_after_return DATE,
+    expected_delivery_date DATE,
+    actual_delivery_date DATE,
+    payment_terms VARCHAR(100),
+    payment_date DATE,
+    shipping_method VARCHAR(100),
+    tracking_number VARCHAR(100),
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (purchase_request_id) REFERENCES PurchaseRequests(purchase_request_id),
+    FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id),
+    FOREIGN KEY (ordered_by) REFERENCES users(user_id),
+    FOREIGN KEY (approved_by) REFERENCES users(user_id)
+);
+
+-- PurchaseOrderItems table
+CREATE TABLE PurchaseOrderItems (
+    purchaseorder_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    purchase_order_id VARCHAR(20) NOT NULL,
+    purchaserequest_item_id INT NOT NULL,
+    item_name VARCHAR(100) NOT NULL,
+    category_id VARCHAR(10) NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(12,2) NOT NULL,
+    total_price DECIMAL(12,2) GENERATED ALWAYS AS (ROUND(quantity * unit_price, 2)) STORED,
+    received_quantity INT DEFAULT 0,
+    returned_quantity INT DEFAULT 0,
+    item_status ENUM('Ordered', 'Received', 'Cancelled', 'Returned') DEFAULT 'Ordered',
+    item_return_reason TEXT,
+    specifications TEXT,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (purchase_order_id) REFERENCES PurchaseOrders(purchase_order_id),
+    FOREIGN KEY (purchaserequest_item_id) REFERENCES PurchaseRequestItems(purchaserequest_item_id),
+    FOREIGN KEY (category_id) REFERENCES Categories(category_id),
+    INDEX (purchase_order_id)
+);
+
+CREATE TABLE PurchaseOrderItems (
+    purchaseorder_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    purchase_order_id VARCHAR(20) NOT NULL,
+    purchaserequest_item_id INT NOT NULL,
+    item_name VARCHAR(100) NOT NULL,
+    category_id VARCHAR(10) NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(12,2) NOT NULL,
+    total_price DECIMAL(12,2) GENERATED ALWAYS AS (quantity * unit_price) STORED,
+    received_quantity INT DEFAULT 0,
+    returned_quantity INT DEFAULT 0,
+    remaining_quantity INT GENERATED ALWAYS AS (quantity - received_quantity + returned_quantity) STORED,
+    item_status ENUM('Ordered', 'Received', 'Cancelled', 'Returned') DEFAULT 'Ordered',
+    item_return_reason TEXT,
+    specifications TEXT,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (purchase_order_id) REFERENCES PurchaseOrders(purchase_order_id) ON DELETE CASCADE,
+    FOREIGN KEY (purchaserequest_item_id) REFERENCES PurchaseRequestItems(purchaserequest_item_id),
+    FOREIGN KEY (category_id) REFERENCES Categories(category_id),
+    INDEX (purchase_order_id)
+);

@@ -45,7 +45,7 @@ const UserManagement = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch users",
+        description: error.response?.data?.message || error.message || "Failed to fetch users",
         variant: "destructive",
       });
     } finally {

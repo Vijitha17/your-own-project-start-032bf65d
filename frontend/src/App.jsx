@@ -1,12 +1,11 @@
 // src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './lib/auth';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, Outlet } from "react-router-dom";
 import Index from "./pages/Index.jsx";
 import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -33,91 +32,133 @@ import LocationList from "./components/stock/LocationList";
 
 const queryClient = new QueryClient();
 
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Index />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/dashboard",
+    element: <AuthRoute><Dashboard /></AuthRoute>,
+  },
+  {
+    path: "/profile",
+    element: <AuthRoute><Profile /></AuthRoute>,
+  },
+  {
+    path: "/reports",
+    element: <AuthRoute><Reports /></AuthRoute>,
+  },
+  {
+    path: "/users",
+    element: <AuthRoute><UserManagement /></AuthRoute>,
+    children: [
+      { index: true, element: <></> },
+      { path: ":id", element: <></> },
+    ],
+  },
+  {
+    path: "/users/departments/add",
+    element: <AuthRoute><AddDepartmentForm /></AuthRoute>,
+  },
+  {
+    path: "/users/colleges/add",
+    element: <AuthRoute><AddCollegeForm /></AuthRoute>,
+  },
+  {
+    path: "/requirement",
+    element: <AuthRoute><Requirements /></AuthRoute>,
+    children: [
+      { index: true, element: <></> },
+      { path: "current", element: <></> },
+      { path: "history", element: <></> },
+    ],
+  },
+  {
+    path: "/stock",
+    element: <AuthRoute><StockManagement /></AuthRoute>,
+    children: [
+      { index: true, element: <CurrentStock /> },
+      { path: "current", element: <CurrentStock /> },
+      { path: "allocated", element: <></> },
+      { path: "service", element: <></> },
+      { path: "trashed", element: <></> },
+      { path: "sold", element: <></> },
+      { path: "categories", element: <CategoryList /> },
+      { path: "locations", element: <LocationList /> },
+    ],
+  },
+  {
+    path: "/stock/categories/add",
+    element: <AuthRoute><AddCategoryForm /></AuthRoute>,
+  },
+  {
+    path: "/stock/locations/add",
+    element: <AuthRoute><AddLocationForm /></AuthRoute>,
+  },
+  {
+    path: "/movement",
+    element: <AuthRoute><StockMovement /></AuthRoute>,
+    children: [
+      { index: true, element: <></> },
+      { path: ":id", element: <></> },
+    ],
+  },
+  {
+    path: "/vendor",
+    element: <AuthRoute><VendorManagement /></AuthRoute>,
+    children: [
+      { index: true, element: <></> },
+      { path: ":id", element: <></> },
+    ],
+  },
+  {
+    path: "/purchase",
+    element: <AuthRoute><PurchaseManagement /></AuthRoute>,
+    children: [
+      { index: true, element: <></> },
+      { path: ":id", element: <></> },
+    ],
+  },
+  {
+    path: "/expenditure",
+    element: <AuthRoute><ExpenditureManagement /></AuthRoute>,
+    children: [
+      { index: true, element: <></> },
+      { path: ":id", element: <></> },
+    ],
+  },
+  {
+    path: "/request",
+    element: <AuthRoute><RequestApproval /></AuthRoute>,
+    children: [
+      { index: true, element: <></> },
+      { path: ":id", element: <></> },
+    ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
+  },
+], {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true,
+  }
+});
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <Router>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<AuthRoute><Dashboard /></AuthRoute>} />
-            <Route path="/profile" element={<AuthRoute><Profile /></AuthRoute>} />
-            <Route path="/reports" element={<AuthRoute><Reports /></AuthRoute>} />
-            
-            {/* User Management Routes */}
-            <Route path="/users" element={<AuthRoute><UserManagement /></AuthRoute>}>
-              <Route index element={<Outlet />} />
-              <Route path=":id" element={<Outlet />} />
-            </Route>
-            
-            {/* Add Department Form Route */}
-            <Route path="/users/departments/add" element={<AuthRoute><AddDepartmentForm /></AuthRoute>} />
-            
-            {/* Add College Form Route */}
-            <Route path="/users/colleges/add" element={<AuthRoute><AddCollegeForm /></AuthRoute>} />
-
-            {/* Requirement Routes */}
-            <Route path="/requirement" element={<AuthRoute><Requirements /></AuthRoute>}>
-              <Route index element={<Outlet />} />
-              <Route path="current" element={<Outlet />} />
-              <Route path="history" element={<Outlet />} />
-            </Route>
-
-            {/* Stock Management Routes */}
-            <Route path="/stock" element={<AuthRoute><StockManagement /></AuthRoute>}>
-              <Route index element={<CurrentStock />} />
-              <Route path="current" element={<CurrentStock />} />
-              <Route path="allocated" element={<Outlet />} />
-              <Route path="service" element={<Outlet />} />
-              <Route path="trashed" element={<Outlet />} />
-              <Route path="sold" element={<Outlet />} />
-              <Route path="categories" element={<CategoryList />} />
-              <Route path="locations" element={<LocationList />} />
-            </Route>
-
-            {/* Add Category Form Route */}
-            <Route path="/stock/categories/add" element={<AuthRoute><AddCategoryForm /></AuthRoute>} />
-            
-            {/* Add Location Form Route */}
-            <Route path="/stock/locations/add" element={<AuthRoute><AddLocationForm /></AuthRoute>} />
-
-            {/* Stock Movement Routes */}
-            <Route path="/movement" element={<AuthRoute><StockMovement /></AuthRoute>}>
-              <Route index element={<Outlet />} />
-              <Route path=":id" element={<Outlet />} />
-            </Route>
-
-            {/* Vendor Management Routes */}
-            <Route path="/vendor" element={<AuthRoute><VendorManagement /></AuthRoute>}>
-              <Route index element={<Outlet />} />
-              <Route path=":id" element={<Outlet />} />
-            </Route>
-
-            {/* Purchase Management Routes */}
-            <Route path="/purchase" element={<AuthRoute><PurchaseManagement /></AuthRoute>}>
-              <Route index element={<Outlet />} />
-              <Route path=":id" element={<Outlet />} />
-            </Route>
-
-            {/* Expenditure Management Routes */}
-            <Route path="/expenditure" element={<AuthRoute><ExpenditureManagement /></AuthRoute>}>
-              <Route index element={<Outlet />} />
-              <Route path=":id" element={<Outlet />} />
-            </Route>
-
-            {/* Request Approval Routes */}
-            <Route path="/request" element={<AuthRoute><RequestApproval /></AuthRoute>}>
-              <Route index element={<Outlet />} />
-              <Route path=":id" element={<Outlet />} />
-            </Route>
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </Router>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

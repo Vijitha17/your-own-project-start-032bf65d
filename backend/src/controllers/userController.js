@@ -297,6 +297,40 @@ const getProfile = async (req, res) => {
     }
 };
 
+// Get users by role
+const getUsersByRole = async (req, res) => {
+    try {
+        const { role } = req.params;
+        
+        // Validate role
+        const validRoles = ['hod', 'principal', 'management_admin'];
+        if (!validRoles.includes(role.toLowerCase())) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid role. Must be one of: ${validRoles.join(', ')}`
+            });
+        }
+
+        console.log(`Fetching users with role: ${role}`);
+        const users = await User.getUsersByRole(role);
+        
+        if (!users || users.length === 0) {
+            console.log(`No users found with role: ${role}`);
+            return res.json([]);
+        }
+
+        console.log(`Found ${users.length} users with role: ${role}`);
+        res.json(users);
+    } catch (error) {
+        console.error('Get users by role error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching users by role',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
 module.exports = {
     login,
     createUser,
@@ -308,5 +342,6 @@ module.exports = {
     getAllColleges,
     getDepartmentsByCollege,
     logout,
-    getProfile
+    getProfile,
+    getUsersByRole
 };

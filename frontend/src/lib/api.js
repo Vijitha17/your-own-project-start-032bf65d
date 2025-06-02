@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: 'http://localhost:5000/api',
   timeout: 30000, // 30 seconds
   withCredentials: true,
   headers: {
@@ -55,7 +53,7 @@ api.interceptors.response.use(
 // Auth API
 export const login = async (credentials) => {
   try {
-    const response = await api.post('/auth/login', credentials);
+    const response = await api.post('/users/login', credentials);
     localStorage.setItem('token', response.data.token);
     return response.data;
   } catch (error) {
@@ -66,7 +64,7 @@ export const login = async (credentials) => {
 
 export const logout = async () => {
   try {
-    await api.post('/auth/logout');
+    await api.post('/users/logout');
     localStorage.removeItem('token');
   } catch (error) {
     console.error('Logout error:', error);
@@ -76,7 +74,7 @@ export const logout = async () => {
 
 export const getCurrentUser = async () => {
   try {
-    const response = await api.get('/auth/me');
+    const response = await api.get('/users/me');
     return response.data;
   } catch (error) {
     console.error('Get current user error:', error);
@@ -85,15 +83,15 @@ export const getCurrentUser = async () => {
 };
 
 // Profile API
-export const getProfile = () => api.get('/auth/profile').then(res => res.data);
-export const updateProfile = (data) => api.put('/auth/profile', data).then(res => res.data);
-export const changePassword = (data) => api.put('/auth/profile/password', data).then(res => res.data);
+export const getProfile = () => api.get('/users/profile').then(res => res.data);
+export const updateProfile = (data) => api.put('/users/profile', data).then(res => res.data);
+export const changePassword = (data) => api.put('/users/profile/password', data).then(res => res.data);
 
 // User Management API
-export const getUsers = () => api.get('/auth/users').then(res => res.data);
-export const createUser = (data) => api.post('/auth/users', data).then(res => res.data);
-export const updateUser = (id, data) => api.put(`/auth/users/${id}`, data).then(res => res.data);
-export const deleteUser = (id) => api.delete(`/auth/users/${id}`).then(res => res.data);
+export const getUsers = () => api.get('/users').then(res => res.data);
+export const createUser = (data) => api.post('/users', data).then(res => res.data);
+export const updateUser = (id, data) => api.put(`/users/${id}`, data).then(res => res.data);
+export const deleteUser = (id) => api.delete(`/users/${id}`).then(res => res.data);
 
 // College API
 export const getColleges = async () => {
