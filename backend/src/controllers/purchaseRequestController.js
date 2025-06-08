@@ -9,10 +9,29 @@ const createPurchaseRequest = async (req, res) => {
             requested_by: req.user.user_id
         };
 
-        // Rename approver_id to approve_by if present
-        if (purchaseRequestData.approver_id) {
-            purchaseRequestData.approve_by = purchaseRequestData.approver_id;
-            delete purchaseRequestData.approver_id;
+        // Validate required fields
+        if (!purchaseRequestData.approver_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Approver ID is required'
+            });
+        }
+
+        if (!purchaseRequestData.items || !Array.isArray(purchaseRequestData.items) || purchaseRequestData.items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'At least one item is required'
+            });
+        }
+
+        // Validate each item
+        for (const item of purchaseRequestData.items) {
+            if (!item.item_name || !item.category_id || !item.quantity || !item.estimated_unit_cost) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Each item must have a name, category, quantity, and estimated unit cost'
+                });
+            }
         }
 
         const purchaseRequest = await PurchaseRequest.create(purchaseRequestData);

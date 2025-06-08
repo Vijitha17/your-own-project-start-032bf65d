@@ -12,6 +12,7 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import api from "@/lib/api";
+import axios from "axios";
 
 const CreateRequestForm = ({ onCancel }) => {
   const [approvers, setApprovers] = useState({
@@ -19,8 +20,11 @@ const CreateRequestForm = ({ onCancel }) => {
     Principal: [],
     Management_Admin: []
   });
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   
   const [formData, setFormData] = useState({
     approver1_id: "", // HOD
@@ -29,74 +33,62 @@ const CreateRequestForm = ({ onCancel }) => {
     items: [
       {
         item_name: "",
-        quantity: 1
+        quantity: 1,
+        category_id: ""
       }
     ]
   });
 
   useEffect(() => {
-    // Fetch approvers from API
-    const fetchApprovers = async () => {
+    const fetchData = async () => {
       try {
-        console.log('Fetching approvers...');
+        setIsLoading(true);
+        setError(null);
         
-        // Get the auth token
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-
-        // Set up headers with auth token
-        const headers = {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        };
-
-        // Adjust role names to match backend expected case
-        const [hodResponse, principalResponse, adminResponse] = await Promise.all([
-          api.get('/users/role/hod', { headers }),
-          api.get('/users/role/principal', { headers }),
-          api.get('/users/role/management_admin', { headers })
+        // Fetch both approvers and categories
+        const [hodResponse, principalResponse, adminResponse, categoriesResponse] = await Promise.all([
+          api.get('/users/role/hod'),
+          api.get('/users/role/principal'),
+          api.get('/users/role/management_admin'),
+          api.get('/categories')
         ]);
-
-        console.log('HOD Response:', hodResponse.data);
-        console.log('Principal Response:', principalResponse.data);
-        console.log('Management Admin Response:', adminResponse.data);
 
         setApprovers({
           HOD: hodResponse.data || [],
           Principal: principalResponse.data || [],
           Management_Admin: adminResponse.data || []
         });
-      } catch (error) {
-        console.error('Error fetching approvers:', error);
-        console.error('Error details:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        
-        // Show more specific error message
-        let errorMessage = "Failed to fetch approvers. ";
-        if (error.response?.status === 401) {
-          errorMessage += "Please log in again.";
-        } else if (error.response?.status === 404) {
-          errorMessage += "API endpoint not found. Please check the server configuration.";
-        } else {
-          errorMessage += error.response?.data?.message || "Please try again.";
-        }
 
+        // Handle categories data based on the API response format
+        if (categoriesResponse.data?.status === 'success' && Array.isArray(categoriesResponse.data.data)) {
+          setCategories(categoriesResponse.data.data);
+        } else if (Array.isArray(categoriesResponse.data)) {
+          setCategories(categoriesResponse.data);
+        } else {
+          console.error('Categories data is not in expected format:', categoriesResponse.data);
+          setCategories([]);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError('Failed to load form data. Please try again.');
         toast({
           title: "Error",
-          description: errorMessage,
+          description: "Failed to load form data. Please try again.",
           variant: "destructive"
+        });
+        // Set empty arrays to prevent mapping errors
+        setCategories([]);
+        setApprovers({
+          HOD: [],
+          Principal: [],
+          Management_Admin: []
         });
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchApprovers();
+    fetchData();
   }, []);
 
   const handleApproverChange = (level, value) => {
@@ -106,7 +98,7 @@ const CreateRequestForm = ({ onCancel }) => {
   const handleAddItem = () => {
     setFormData(prev => ({
       ...prev,
-      items: [...prev.items, { item_name: "", quantity: 1 }]
+      items: [...prev.items, { item_name: "", quantity: 1, category_id: "" }]
     }));
   };
 
@@ -121,73 +113,120 @@ const CreateRequestForm = ({ onCancel }) => {
   const handleItemChange = (index, field, value) => {
     setFormData(prev => {
       const newItems = [...prev.items];
-      newItems[index] = { ...newItems[index], [field]: value };
+      newItems[index] = { 
+        ...newItems[index], 
+        [field]: field === 'quantity' ? parseInt(value) || 1 : value 
+      };
       return { ...prev, items: newItems };
     });
   };
 
-  const validateForm = () => {
-    if (!formData.approver1_id || !formData.approver2_id || !formData.approver3_id) {
-      toast({
-        title: "Error",
-        description: "Please select all three approvers",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    if (formData.items.some(item => !item.item_name || item.quantity <= 0)) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields for each item",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    return true;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    setError('');
+    setSuccess('');
 
-    setIsSubmitting(true);
     try {
-      const response = await api.post('/requests', formData);
-      
+      // Validate form data
+      if (!formData.approver1_id || !formData.approver2_id || !formData.approver3_id) {
+        setError('Please select all required approvers');
+        return;
+      }
+
+      if (!formData.items.length) {
+        setError('Please add at least one item');
+        return;
+      }
+
+      // Validate each item
+      for (const item of formData.items) {
+        if (!item.item_name || !item.category_id || !item.quantity) {
+          setError('Please fill in all required fields for each item');
+          return;
+        }
+        if (item.quantity <= 0) {
+          setError('Quantity must be greater than 0');
+          return;
+        }
+      }
+
+      // Get the current user's ID from localStorage or your auth context
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      if (!currentUser || !currentUser.user_id) {
+        setError('User information not found. Please log in again.');
+        return;
+      }
+
+      const requestData = {
+        approver1_id: formData.approver1_id,
+        approver2_id: formData.approver2_id,
+        approver3_id: formData.approver3_id,
+        requested_by: currentUser.user_id,
+        items: formData.items.map(item => ({
+          item_name: item.item_name.trim(),
+          category_id: item.category_id,
+          quantity: parseInt(item.quantity),
+          specifications: item.specifications || ''
+        }))
+      };
+
+      console.log('Submitting request data:', requestData);
+
+      const response = await api.post('/requests', requestData);
+
       if (response.data.success) {
+        // Show success message
         toast({
           title: "Success",
-          description: "Request created successfully. Waiting for approval.",
+          description: "Request submitted successfully!",
+          variant: "success",
         });
-        onCancel();
-      } else {
-        throw new Error(response.data.message || "Failed to create request");
+
+        // Reset form
+        setFormData({
+          approver1_id: '',
+          approver2_id: '',
+          approver3_id: '',
+          items: [{
+            item_name: '',
+            category_id: '',
+            quantity: 1,
+            specifications: ''
+          }]
+        });
+
+        // Close the form if onCancel is provided
+        if (onCancel) {
+          onCancel();
+        }
       }
     } catch (error) {
       console.error('Error creating request:', error);
       toast({
         title: "Error",
-        description: error.response?.data?.message || error.message || "Failed to create request",
-        variant: "destructive"
+        description: error.response?.data?.message || 'Error creating request. Please try again.',
+        variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center p-4">Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 space-y-4">
+        <p className="text-red-500">{error}</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="approver1">HOD (First Approver)</Label>
             <Select
@@ -241,7 +280,7 @@ const CreateRequestForm = ({ onCancel }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="approver3">Management Admin (Third Approver)</Label>
+            <Label htmlFor="approver3">Management Admin (Final Approver)</Label>
             <Select
               value={formData.approver3_id}
               onValueChange={(value) => handleApproverChange(3, value)}
@@ -268,62 +307,88 @@ const CreateRequestForm = ({ onCancel }) => {
         </div>
 
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Item Details</h3>
-            <Button type="button" onClick={handleAddItem} variant="outline">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">Items</h3>
+            <Button type="button" onClick={handleAddItem}>
               <Plus className="h-4 w-4 mr-2" />
               Add Item
             </Button>
           </div>
 
           {formData.items.map((item, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+            <div key={index} className="grid gap-4 md:grid-cols-3 border p-4 rounded-lg">
               <div className="space-y-2">
-                <Label htmlFor={`item-name-${index}`}>Item Name</Label>
+                <Label htmlFor={`item_name_${index}`}>Item Name</Label>
                 <Input
-                  id={`item-name-${index}`}
+                  id={`item_name_${index}`}
                   value={item.item_name}
                   onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
-                  placeholder="Enter item name"
                   required
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor={`item-quantity-${index}`}>Quantity</Label>
+                <Label htmlFor={`category_${index}`}>Category</Label>
+                <Select
+                  value={item.category_id}
+                  onValueChange={(value) => handleItemChange(index, 'category_id', value)}
+                  required
+                >
+                  <SelectTrigger id={`category_${index}`}>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(categories) && categories.length > 0 ? (
+                      categories.map(category => (
+                        <SelectItem key={category.category_id} value={category.category_id}>
+                          {category.category_name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-categories" disabled>
+                        No categories available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor={`quantity_${index}`}>Quantity</Label>
                 <Input
-                  id={`item-quantity-${index}`}
+                  id={`quantity_${index}`}
                   type="number"
                   min="1"
-                  value={item.quantity}
-                  onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value))}
+                  value={item.quantity || 0}
+                  onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                   required
                 />
               </div>
-              {formData.items.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveItem(index)}
-                  className="md:col-span-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => handleRemoveItem(index)}
+                disabled={formData.items.length === 1}
+                className="md:col-span-3"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           ))}
         </div>
-      </div>
 
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit Request"}
-        </Button>
-      </div>
-    </form>
+        <div className="flex justify-end space-x-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit Request"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 

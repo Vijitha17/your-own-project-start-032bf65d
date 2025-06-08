@@ -388,4 +388,35 @@ export const updatePurchaseRequestStatus = async (purchaseRequestId, status) => 
   }
 };
 
+// Request API
+export const getRequests = async () => {
+  try {
+    const response = await api.get('/requests');
+    return response.data;
+  } catch (error) {
+    console.error('Get requests error:', error);
+    throw error;
+  }
+};
+
+export const createRequest = async (requestData) => {
+  try {
+    const response = await api.post('/requests', requestData);
+    return response.data;
+  } catch (error) {
+    console.error('Create request error:', error);
+    throw error;
+  }
+};
+
+export const getRequestById = async (requestId) => {
+  try {
+    const response = await api.get(`/requests/${requestId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get request error:', error);
+    throw error;
+  }
+};
+
 export default api;

@@ -34,40 +34,40 @@ router.get('/profile', authMiddleware(), getProfile);
 router.get('/colleges', authMiddleware(), getAllColleges);
 router.get('/colleges/:college_id/departments', authMiddleware(), getDepartmentsByCollege);
 
-// User Management Routes
+// User Management Routes - All roles have access
 router.post('/users', 
-  authMiddleware([ROLES.MANAGEMENT_ADMIN]), 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.MANAGEMENT, ROLES.PRINCIPAL, ROLES.HOD, ROLES.DEPARTMENT_INCHARGE]), 
   createUser
 );
 
 router.put('/users/:user_id', 
-  authMiddleware([ROLES.MANAGEMENT_ADMIN]), 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.MANAGEMENT, ROLES.PRINCIPAL, ROLES.HOD, ROLES.DEPARTMENT_INCHARGE]), 
   updateUser
 );
 
-// Get users by role - This needs to come before /users/:user_id
+// Get users by role - All roles have access
 router.get('/users/role/:role', 
-  authMiddleware(), // Allow all authenticated users to fetch approvers
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.MANAGEMENT, ROLES.PRINCIPAL, ROLES.HOD, ROLES.DEPARTMENT_INCHARGE]), 
   getUsersByRole
 );
 
 router.get('/users', 
-  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.PRINCIPAL, ROLES.MANAGEMENT]), 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.MANAGEMENT, ROLES.PRINCIPAL, ROLES.HOD, ROLES.DEPARTMENT_INCHARGE]), 
   getAllUsers
 );
 
 router.get('/users/:user_id', 
-  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.PRINCIPAL]), 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.MANAGEMENT, ROLES.PRINCIPAL, ROLES.HOD, ROLES.DEPARTMENT_INCHARGE]), 
   getUserById
 );
 
 router.get('/college/:college_id/users', 
-  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.PRINCIPAL, ROLES.HOD]), 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.MANAGEMENT, ROLES.PRINCIPAL, ROLES.HOD, ROLES.DEPARTMENT_INCHARGE]), 
   getUsersByCollege
 );
 
 router.get('/college/:college_id/department/:department_id/users', 
-  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.HOD, ROLES.DEPARTMENT_INCHARGE]), 
+  authMiddleware([ROLES.MANAGEMENT_ADMIN, ROLES.MANAGEMENT, ROLES.PRINCIPAL, ROLES.HOD, ROLES.DEPARTMENT_INCHARGE]), 
   getUsersByDepartment
 );
 

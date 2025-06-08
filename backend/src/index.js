@@ -12,6 +12,7 @@ const vendorRoutes = require('./routes/vendorRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const purchaseRequestRoutes = require('./routes/purchaseRequestRoutes');
 const purchaseOrderRoutes = require('./routes/purchaseOrderRoutes');
+const requestRoutes = require('./routes/requestRoutes');
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use('/api/vendors', vendorRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/purchase-requests', purchaseRequestRoutes);
 app.use('/api/purchase-orders', purchaseOrderRoutes);
+app.use('/api/requests', requestRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

@@ -302,24 +302,25 @@ const getUsersByRole = async (req, res) => {
     try {
         const { role } = req.params;
         
-        // Validate role
-        const validRoles = ['hod', 'principal', 'management_admin'];
-        if (!validRoles.includes(role.toLowerCase())) {
-            return res.status(400).json({
-                success: false,
-                message: `Invalid role. Must be one of: ${validRoles.join(', ')}`
-            });
-        }
+        // Map frontend role names to database role names
+        const roleMapping = {
+            'hod': 'HOD',
+            'principal': 'Principal',
+            'management_admin': 'Management_Admin'
+        };
 
-        console.log(`Fetching users with role: ${role}`);
-        const users = await User.getUsersByRole(role);
+        // Convert role to proper case
+        const normalizedRole = roleMapping[role.toLowerCase()] || role;
+        
+        console.log(`Fetching users with role: ${normalizedRole}`);
+        const users = await User.getUsersByRole(normalizedRole);
         
         if (!users || users.length === 0) {
-            console.log(`No users found with role: ${role}`);
+            console.log(`No users found with role: ${normalizedRole}`);
             return res.json([]);
         }
 
-        console.log(`Found ${users.length} users with role: ${role}`);
+        console.log(`Found ${users.length} users with role: ${normalizedRole}`);
         res.json(users);
     } catch (error) {
         console.error('Get users by role error:', error);
